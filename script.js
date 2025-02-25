@@ -7,84 +7,104 @@ class Platform {
     this.y = y;
   }
 
-  CreateWide() {
-
-    console.log("Creating wide platform");
-    const platformDiv = document.createElement("div");
+  CreatePlatform() {
+    const framePlatformDiv = document.createElement("div");
     // platformDiv.style.width = `${this.width*imageWidth}px`;
-    platformDiv.className = "platform";
-    platformDiv.style.display = "flex";
-
-    platformDiv.style.position = "absolute";
-    platformDiv.style.left = `${this.x}px`;
-    platformDiv.style.top = `${this.y}px`;
-
+    framePlatformDiv.className = "platform";
+    framePlatformDiv.style.display = "flex";
+    framePlatformDiv.style.position = "absolute";
+    framePlatformDiv.style.left = `${this.x}px`;
+    framePlatformDiv.style.top = `${this.y}px`;
     // platformDiv.style.width = `${this.width * 128}px`;
     // platformDiv.style.height = `${this.height * 128}px`;
-
-    platformDiv.style.width = `${500}px`;
-    platformDiv.style.height = `${100}px`;
-
-    platformDiv.style.zIndex = 10;
+    framePlatformDiv.style.width = `${500}px`;
+    framePlatformDiv.style.height = `${100}px`;
+    framePlatformDiv.style.zIndex = 10;
 
     let singlePlatformWidth = 128;
     let singlePlatformHeight = 128;
+    let platformType = "Unkown";
 
-    
-    const platformImgDir = String.raw`img\Free Platform Game Assets\Platform Game Assets\Tiles\png\128x128`;
-    // console.log(platformImgDir);
+    for (
+      let platformIndex = 0;
+      platformIndex < this.width - 1;
+      platformIndex++
+    ) {
+      const childPlatformDiv = document.createElement("div");
 
-
-    // console.log(this.width)
-    // console.log(this.height)
-
-    for (let platformIndex = 0; platformIndex < this.width - 1; platformIndex++) {
       if (platformIndex == 0) {
-        // console.log(platformImgDir);
-        let leftPlatformImg = platformImgDir + "/GrassCliffLeft.png";
-        // console.log(leftPlatformImg);
-
-        const leftPlatformDiv = document.createElement("div");
-        // leftPlatformDiv.style.backgroundColor = "red";
-        let img = "url(" + String.raw`C:\dev\Javascript\PlatformingGame\img\128x128\GrassCliffLeft.png` + ")";
-        console.log(img);
-        leftPlatformDiv.style.backgroundImage = img
-        console.log(leftPlatformDiv.style.backgroundImage);
-        
-        leftPlatformDiv.style.backgroundSize = "cover";
-
-        
-
-        leftPlatformDiv.style.width = `${singlePlatformWidth}px`;
-        leftPlatformDiv.style.height = `${singlePlatformHeight}px`;
-        // console.log(leftPlatformDiv);
-
-        platformDiv.appendChild(leftPlatformDiv);
+        platformType = "Left";
       }
       if (platformIndex == this.width - 1) {
-        const rightPlatformImg = platformImgDir + "/GrassCliffRight.png";
-        const rightPlatformDiv = document.createElement("div");
-        rightPlatformDiv.style.backgroundImage = `url(${rightPlatformImg})`;
-        rightPlatformDiv.style.width = `${singlePlatformWidth}px`;
-        rightPlatformDiv.style.height = `${singlePlatformHeight}px`;
-
-        platformDiv.appendChild(rightPlatformDiv);
+        platformType = "Right";
       } else {
-        const middlePlatformImg = platformImgDir + "/Grass.png";
-        const middlePlatformDiv = document.createElement("div");
-        middlePlatformDiv.style.backgroundImage = `url(${middlePlatformImg})`;
-        middlePlatformDiv.style.width = `${singlePlatformWidth}px`;
-        middlePlatformDiv.style.height = `${singlePlatformHeight}px`;
-
-        platformDiv.appendChild(middlePlatformDiv);
+        platformType = "Mid";
       }
-    }
-    document.querySelector("#gameGui").appendChild(platformDiv);
 
-    document.body.appendChild(platformDiv);
+      let platformImg =
+        "url(" + String.raw`img\128x128\GrassCliff` + platformType + ".png)";
+      console.log(platformImg);
+
+      childPlatformDiv.style.backgroundImage = platformImg;
+      childPlatformDiv.style.backgroundSize = "cover";
+      childPlatformDiv.style.width = `${singlePlatformWidth}px`;
+      childPlatformDiv.style.height = `${singlePlatformHeight}px`;
+
+      framePlatformDiv.appendChild(childPlatformDiv);
+    }
+    document.querySelector("#gameGui").appendChild(framePlatformDiv);
+    document.body.appendChild(framePlatformDiv);
   }
 }
+//     for (
+//       let platformIndex = 0;
+//       platformIndex < this.width - 1;
+//       platformIndex++
+//     ) {
+//       if (platformIndex == 0) {
+//         // console.log(platformImgDir);
+//         let leftPlatformImg = platformImgDir + "/GrassCliffLeft.png";
+//         // console.log(leftPlatformImg);
+
+//         const leftPlatformDiv = document.createElement("div");
+//         // leftPlatformDiv.style.backgroundColor = "red";
+//         let img = "url(" + String.raw`img\128x128\GrassCliffLeft.png` + ")";
+//         console.log(img);
+//         leftPlatformDiv.style.backgroundImage = img;
+//         console.log(leftPlatformDiv.style.backgroundImage);
+
+//         leftPlatformDiv.style.backgroundSize = "cover";
+
+//         leftPlatformDiv.style.width = `${singlePlatformWidth}px`;
+//         leftPlatformDiv.style.height = `${singlePlatformHeight}px`;
+//         // console.log(leftPlatformDiv);
+
+//         platformDiv.appendChild(leftPlatformDiv);
+//       }
+//       if (platformIndex == this.width - 1) {
+//         const rightPlatformImg = platformImgDir + "/GrassCliffRight.png";
+//         const rightPlatformDiv = document.createElement("div");
+//         rightPlatformDiv.style.backgroundImage = `url(${rightPlatformImg})`;
+//         rightPlatformDiv.style.width = `${singlePlatformWidth}px`;
+//         rightPlatformDiv.style.height = `${singlePlatformHeight}px`;
+
+//         platformDiv.appendChild(rightPlatformDiv);
+//       } else {
+//         const middlePlatformImg = platformImgDir + "/Grass.png";
+//         const middlePlatformDiv = document.createElement("div");
+//         middlePlatformDiv.style.backgroundImage = `url(${middlePlatformImg})`;
+//         middlePlatformDiv.style.width = `${singlePlatformWidth}px`;
+//         middlePlatformDiv.style.height = `${singlePlatformHeight}px`;
+
+//         platformDiv.appendChild(middlePlatformDiv);
+//       }
+//     }
+//     document.querySelector("#gameGui").appendChild(platformDiv);
+
+//     document.body.appendChild(platformDiv);
+//   }
+// }
 
 const platform = new Platform(3, 1, "grass", 300, 200);
 
-platform.CreateWide();
+platform.CreatePlatform();
