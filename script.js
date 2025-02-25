@@ -5,106 +5,107 @@ class Platform {
     this.type = type;
     this.x = x;
     this.y = y;
+    // X and Y pos are the top left corner of the platform
   }
-
+  
   CreatePlatform() {
     const framePlatformDiv = document.createElement("div");
-    // platformDiv.style.width = `${this.width*imageWidth}px`;
-    framePlatformDiv.className = "platform";
-    framePlatformDiv.style.display = "flex";
-    framePlatformDiv.style.position = "absolute";
-    framePlatformDiv.style.left = `${this.x}px`;
-    framePlatformDiv.style.top = `${this.y}px`;
-    // platformDiv.style.width = `${this.width * 128}px`;
-    // platformDiv.style.height = `${this.height * 128}px`;
-    framePlatformDiv.style.width = `${500}px`;
-    framePlatformDiv.style.height = `${100}px`;
-    framePlatformDiv.style.zIndex = 10;
 
-    let singlePlatformWidth = 128;
-    let singlePlatformHeight = 128;
+    AssingFramePlatformParams(
+      framePlatformDiv,
+      this.x,
+      this.y,
+      this.width,
+      this.height
+    );
+
     let platformType = "Unkown";
-
-    for (
-      let platformIndex = 0;
-      platformIndex < this.width - 1;
-      platformIndex++
-    ) {
+    for (let platformIndex = 0; platformIndex < this.width; platformIndex++) {
       const childPlatformDiv = document.createElement("div");
-
-      if (platformIndex == 0) {
-        platformType = "Left";
-      }
-      if (platformIndex == this.width - 1) {
-        platformType = "Right";
+      if (this.width == 1) {
+        platformType = "Single";
       } else {
-        platformType = "Mid";
+        if (platformIndex == 0) {
+          platformType = "Left";
+        } else if (platformIndex == this.width - 1) {
+          platformType = "Right";
+        } else {
+          platformType = "Mid";
+        }
       }
-
       let platformImg =
-        "url(" + String.raw`img\128x128\GrassCliff` + platformType + ".png)";
-      console.log(platformImg);
+        "url(" + String.raw`img/128x128/GrassCliff` + platformType + ".png)";
 
-      childPlatformDiv.style.backgroundImage = platformImg;
-      childPlatformDiv.style.backgroundSize = "cover";
-      childPlatformDiv.style.width = `${singlePlatformWidth}px`;
-      childPlatformDiv.style.height = `${singlePlatformHeight}px`;
-
+      AssingChildPlatformParams(childPlatformDiv, platformImg);
       framePlatformDiv.appendChild(childPlatformDiv);
     }
-    document.querySelector("#gameGui").appendChild(framePlatformDiv);
+    // document.querySelector("#gameGui").appendChild(framePlatformDiv);
     document.body.appendChild(framePlatformDiv);
   }
 }
-//     for (
-//       let platformIndex = 0;
-//       platformIndex < this.width - 1;
-//       platformIndex++
-//     ) {
-//       if (platformIndex == 0) {
-//         // console.log(platformImgDir);
-//         let leftPlatformImg = platformImgDir + "/GrassCliffLeft.png";
-//         // console.log(leftPlatformImg);
+class Player {
+  constructor(startingPosX, startingPosY) {
+    this.startingPosX = startingPosX;
+    this.startingPosY = startingPosY;
+  }
 
-//         const leftPlatformDiv = document.createElement("div");
-//         // leftPlatformDiv.style.backgroundColor = "red";
-//         let img = "url(" + String.raw`img\128x128\GrassCliffLeft.png` + ")";
-//         console.log(img);
-//         leftPlatformDiv.style.backgroundImage = img;
-//         console.log(leftPlatformDiv.style.backgroundImage);
+  LoadPlayer() {
+    this.playerDiv = document.createElement("div");
+    this.playerDiv.style.backgroundImage =
+      "url('img/characters/player/idle.png')";
 
-//         leftPlatformDiv.style.backgroundSize = "cover";
+      this.playerDiv.className = "player";
+      this.playerDiv.style.position = "absolute";
+      this.playerDiv.style.left = `${this.startingPosX}px`;
+      this.playerDiv.style.top = `${this.startingPosY}px`;
+      this.playerDiv.style.zIndex = 11;
+      this.playerDiv.style.width = `78px`;
+      this.playerDiv.style.height = `83px`;
+      
 
-//         leftPlatformDiv.style.width = `${singlePlatformWidth}px`;
-//         leftPlatformDiv.style.height = `${singlePlatformHeight}px`;
-//         // console.log(leftPlatformDiv);
+    document.body.appendChild(this.playerDiv);
 
-//         platformDiv.appendChild(leftPlatformDiv);
-//       }
-//       if (platformIndex == this.width - 1) {
-//         const rightPlatformImg = platformImgDir + "/GrassCliffRight.png";
-//         const rightPlatformDiv = document.createElement("div");
-//         rightPlatformDiv.style.backgroundImage = `url(${rightPlatformImg})`;
-//         rightPlatformDiv.style.width = `${singlePlatformWidth}px`;
-//         rightPlatformDiv.style.height = `${singlePlatformHeight}px`;
+    console.log(this.playerDiv);
+  }
+}
 
-//         platformDiv.appendChild(rightPlatformDiv);
-//       } else {
-//         const middlePlatformImg = platformImgDir + "/Grass.png";
-//         const middlePlatformDiv = document.createElement("div");
-//         middlePlatformDiv.style.backgroundImage = `url(${middlePlatformImg})`;
-//         middlePlatformDiv.style.width = `${singlePlatformWidth}px`;
-//         middlePlatformDiv.style.height = `${singlePlatformHeight}px`;
+function AssingChildPlatformParams(childPlatformDiv, platformImg) {
+  childPlatformDiv.style.backgroundImage = platformImg;
+  childPlatformDiv.style.backgroundSize = "cover";
+  childPlatformDiv.style.width = `128px`;
+  childPlatformDiv.style.height = `128px`;
+}
+function AssingFramePlatformParams(
+  framePlatformDiv,
+  xPos,
+  yPos,
+  width,
+  height
+) {
+  framePlatformDiv.className = "platform";
+  framePlatformDiv.style.display = "flex";
+  framePlatformDiv.style.position = "absolute";
+  framePlatformDiv.style.left = `${xPos}px`;
+  framePlatformDiv.style.top = `${yPos}px`;
+  framePlatformDiv.style.width = `${width * 128}px`;
+  framePlatformDiv.style.height = `${height * 128}px`;
+  framePlatformDiv.style.zIndex = 10;
+}
 
-//         platformDiv.appendChild(middlePlatformDiv);
-//       }
-//     }
-//     document.querySelector("#gameGui").appendChild(platformDiv);
+document.onmousemove = function (e) {
+  var x = e.pageX;
+  var y = e.pageY;
+  e.target.title = "X is " + x + " and Y is " + y;
+};
 
-//     document.body.appendChild(platformDiv);
-//   }
-// }
-
-const platform = new Platform(3, 1, "grass", 300, 200);
+const platform = new Platform(2, 1, "grass", 221, 124);
+const platform2 = new Platform(2, 1, "grass", 1050, 350);
+const platform3 = new Platform(5, 1, "grass", 287, 500);
 
 platform.CreatePlatform();
+platform2.CreatePlatform();
+platform3.CreatePlatform();
+
+const player1 = new Player(300, 150);
+
+player1.LoadPlayer();
