@@ -7,7 +7,7 @@ class Platform {
     this.y = y;
     // X and Y pos are the top left corner of the platform
   }
-  
+
   CreatePlatform() {
     const framePlatformDiv = document.createElement("div");
 
@@ -47,6 +47,9 @@ class Player {
   constructor(startingPosX, startingPosY) {
     this.startingPosX = startingPosX;
     this.startingPosY = startingPosY;
+    this.playerPosX = startingPosX;
+    this.playerPosY = startingPosY;
+    this.keys = [];
   }
 
   LoadPlayer() {
@@ -54,18 +57,62 @@ class Player {
     this.playerDiv.style.backgroundImage =
       "url('img/characters/player/idle.png')";
 
-      this.playerDiv.className = "player";
-      this.playerDiv.style.position = "absolute";
-      this.playerDiv.style.left = `${this.startingPosX}px`;
-      this.playerDiv.style.top = `${this.startingPosY}px`;
-      this.playerDiv.style.zIndex = 11;
-      this.playerDiv.style.width = `78px`;
-      this.playerDiv.style.height = `83px`;
-      
+    this.playerDiv.className = "player";
+    this.playerDiv.style.position = "absolute";
+    this.playerDiv.style.left = `${this.startingPosX}px`;
+    this.playerDiv.style.top = `${this.startingPosY}px`;
+    this.playerDiv.style.zIndex = 11;
+    this.playerDiv.style.width = `78px`;
+    this.playerDiv.style.height = `83px`;
 
     document.body.appendChild(this.playerDiv);
 
     console.log(this.playerDiv);
+  }
+  InititatePlayerMovement() {
+    document.addEventListener("keydown", (e) => {
+      this.keys.push(e.key);
+    });
+
+    document.addEventListener("keyup", (e) => {
+      let index = this.keys.indexOf(e.key);
+      if (index > -1) {
+        this.keys.splice(index, 1); // Remove the key from the array
+        console.log("Key removed");
+      }
+    });
+
+    this.MovePlayer.bind(this);
+    this.MovePlayer();
+
+  }
+
+  MovePlayer(e) {
+    console.log(this.keys)
+    console.log(this.keys.indexOf("ArrowRight"));
+
+    if (this.keys.indexOf("ArrowRight") != -1) {
+      console.log("Right");
+      this.playerPosX += 10;
+    }
+    if (this.keys.indexOf("ArrowLeft") != -1) {
+      this.playerPosX -= 10;
+    }
+    if (this.keys.indexOf("ArrowUp") != -1) {
+      this.playerPosY -= 10;
+    }
+    if (this.keys.indexOf("ArrowDown") != -1) {
+      this.playerPosY += 10;
+    }
+    console.log(this.keys);
+    this.playerDiv.style.left = `${this.playerPosX}px`;
+    this.playerDiv.style.top = `${this.playerPosY}px`;
+
+
+    this.MovePlayer
+    requestAnimationFrame(this.MovePlayer.bind(this));
+    
+    
   }
 }
 
@@ -109,3 +156,4 @@ platform3.CreatePlatform();
 const player1 = new Player(300, 150);
 
 player1.LoadPlayer();
+player1.InititatePlayerMovement();

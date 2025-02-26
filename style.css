@@ -7,24 +7,24 @@ body {
 
 #gameGui {
   position: absolute;
-    top: 20px;
-  width: 90%;
-  height: 90%;
+  /* top: 20px; */
+  width: 100%;
+  height: 100%;
 
   background-image: url(img/background/nature.jpg);
   background-size: contain;
 }
 
 .Platformw3 {
-    position: absolute;
-    top: 100px;
-    left: 100px;
-    background-image: url(img/platforms/ThreeWidePlatform.png);
-    background-size: contain;
-    z-index: 5;
-    width: 220px;
-    height: 75.5px;
+  position: absolute;
+  top: 100px;
+  left: 100px;
+  background-image: url(img/platforms/ThreeWidePlatform.png);
+  background-size: contain;
+  z-index: 5;
+  width: 220px;
+  height: 75.5px;
 
-    /* width: 440px; */
-    /* height: 151px; */
+  /* width: 440px; */
+  /* height: 151px; */
 }
