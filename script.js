@@ -40,13 +40,8 @@ class Platform {
     childPlatformDiv.className = "childPlatform";
     childPlatformDiv.style.backgroundImage = platformImg;
     childPlatformDiv.style.backgroundSize = "cover";
-    console.log(width)
     childPlatformDiv.style.width = `${width}px`;
     childPlatformDiv.style.height = `${height}px`;
-
-    console.log(childPlatformDiv.style.width);
-    console.log(childPlatformDiv.style.height);
-    console.log("IS THIS WORKING")
   }
 
   CreatePlatform() {
@@ -69,8 +64,6 @@ class Platform {
       if (this.numberOfBlocksX == 1) {
         platformType = "Single";
       } else {
-        console.log("Platform index" + platformIndex);
-        console.log("Width" + this.numberOfBlocksX + "\n");
 
         if (platformIndex == 0) {
           platformType = "Left";
@@ -101,7 +94,10 @@ class Player {
     this.startingPos = new Point(startingPosX, startingPosY);
     this.position = new Point(startingPosX, startingPosY);
     this.keys = [];
-    // this.topHitbox =
+
+    this.width = 78;
+    this.height = 84;
+
 
     this.PointA = this.position;
     this.PointB = new Point(this.position.x + this.width, this.position.y);
@@ -131,8 +127,8 @@ class Player {
     this.playerDiv.style.left = `${this.startingPos.x}px`;
     this.playerDiv.style.top = `${this.startingPos.y}px`;
     this.playerDiv.style.zIndex = 11;
-    this.playerDiv.style.width = `78px`;
-    this.playerDiv.style.height = `83px`;
+    this.playerDiv.style.width = `${this.width}px`;
+    this.playerDiv.style.height = `${this.height}px`;
 
     document.body.appendChild(this.playerDiv);
   }
@@ -168,19 +164,31 @@ class Player {
       this.position.y += 10;
     }
     this.UpdateHitbox();
+    
+    checkCollision(player1, platforms);
 
     this.playerDiv.style.left = `${this.position.x}px`;
     this.playerDiv.style.top = `${this.position.y}px`;
+
+    
 
     requestAnimationFrame(this.MovePlayer.bind(this));
     // console.log(this.keys);
   }
 }
 
-// function checkCollision(player, platforms) {
-//   if (player.)
-
-// }
+function checkCollision(player, platforms) {
+  platforms.forEach((platform) => {
+    console.log(player.PointB);
+    if (
+      player.PointB.x > platform.PointA.x &&
+      player.PointB.y > platform.PointA.y
+    ) {
+      console.log("COLLISION");
+    }
+  });
+  
+}
 
 document.onmousemove = function (e) {
   var x = e.pageX;
@@ -196,11 +204,11 @@ platform1.CreatePlatform();
 platform2.CreatePlatform();
 platform3.CreatePlatform();
 
-let platforms = [platform1, platform2, platform3];
+let platforms = [platform1];
 
 const player1 = new Player(300, 150);
 
 player1.LoadPlayer();
 player1.InititatePlayerMovement();
 
-// checkCollision(player1, platforms)
+
