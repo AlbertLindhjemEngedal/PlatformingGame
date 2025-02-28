@@ -7,12 +7,12 @@ class Point {
 }
 class Platform {
   constructor(width, height, type, x, y) {
-    let platformHightAndWidth = 128; // Automate this ??
+    this.platformHeightAndWidth = 128; // Automate this ??
 
     this.numberOfBlocksX = width;
     this.numberOfBlocksY = height;
-    this.width = width * platformHightAndWidth;
-    this.height = height * platformHightAndWidth;
+    this.width = width * this.platformHeightAndWidth;
+    this.height = height * this.platformHeightAndWidth;
 
     this.type = type;
     this.position = new Point(x, y);
@@ -26,26 +26,55 @@ class Platform {
       this.position.y + this.height
     );
   }
+  assingFramePlatformParams(framePlatformDiv, postion, width, height) {
+    framePlatformDiv.className = "platform";
+    framePlatformDiv.style.display = "flex";
+    framePlatformDiv.style.position = "absolute";
+    framePlatformDiv.style.left = `${postion.x}px`;
+    framePlatformDiv.style.top = `${postion.y}px`;
+    framePlatformDiv.style.width = `${width}px`;
+    framePlatformDiv.style.height = `${height}px`;
+    framePlatformDiv.style.zIndex = 10;
+  }
+  assingChildPlatformParams(childPlatformDiv, platformImg, width, height) {
+    childPlatformDiv.className = "childPlatform";
+    childPlatformDiv.style.backgroundImage = platformImg;
+    childPlatformDiv.style.backgroundSize = "cover";
+    console.log(width)
+    childPlatformDiv.style.width = `${width}px`;
+    childPlatformDiv.style.height = `${height}px`;
+
+    console.log(childPlatformDiv.style.width);
+    console.log(childPlatformDiv.style.height);
+    console.log("IS THIS WORKING")
+  }
 
   CreatePlatform() {
     const framePlatformDiv = document.createElement("div");
 
-    AssingFramePlatformParams(
+    this.assingFramePlatformParams(
       framePlatformDiv,
-      this.PointA,
+      this.position,
       this.width,
       this.height
     );
 
     let platformType = "Unkown";
-    for (let platformIndex = 0; platformIndex < this.width; platformIndex++) {
+    for (
+      let platformIndex = 0;
+      platformIndex < this.numberOfBlocksX;
+      platformIndex++
+    ) {
       const childPlatformDiv = document.createElement("div");
-      if (this.width == 1) {
+      if (this.numberOfBlocksX == 1) {
         platformType = "Single";
       } else {
+        console.log("Platform index" + platformIndex);
+        console.log("Width" + this.numberOfBlocksX + "\n");
+
         if (platformIndex == 0) {
           platformType = "Left";
-        } else if (platformIndex == this.width - 1) {
+        } else if (platformIndex == this.numberOfBlocksX - 1) {
           platformType = "Right";
         } else {
           platformType = "Mid";
@@ -54,10 +83,11 @@ class Platform {
       let platformImg =
         "url(" + String.raw`img/128x128/GrassCliff` + platformType + ".png)";
 
-      AssingChildPlatformParams(
+      this.assingChildPlatformParams(
         childPlatformDiv,
         platformImg,
-        this.platformHightAndWidth
+        this.platformHeightAndWidth,
+        this.platformHeightAndWidth
       );
       framePlatformDiv.appendChild(childPlatformDiv);
     }
@@ -76,13 +106,19 @@ class Player {
     this.PointA = this.position;
     this.PointB = new Point(this.position.x + this.width, this.position.y);
     this.PointC = new Point(this.position.x, this.position.y + this.height);
-    this.PointD = new Point(this.position.x + this.width,this.position.y + this.height);
+    this.PointD = new Point(
+      this.position.x + this.width,
+      this.position.y + this.height
+    );
   }
   UpdateHitbox() {
     this.PointA = this.position;
     this.PointB = new Point(this.position.x + this.width, this.position.y);
     this.PointC = new Point(this.position.x, this.position.y + this.height);
-    this.PointD = new Point(this.position.x + this.width,this.position.y + this.height);
+    this.PointD = new Point(
+      this.position.x + this.width,
+      this.position.y + this.height
+    );
   }
 
   LoadPlayer() {
@@ -102,14 +138,15 @@ class Player {
   }
   InititatePlayerMovement() {
     document.addEventListener("keydown", (e) => {
-      this.keys.push(e.key);
+      if (this.keys.indexOf(e.key) == -1) {
+        this.keys.push(e.key);
+      }
     });
 
     document.addEventListener("keyup", (e) => {
       let index = this.keys.indexOf(e.key);
       if (index > -1) {
         this.keys.splice(index, 1);
-        console.log("Key removed");
       }
     });
 
@@ -136,34 +173,12 @@ class Player {
     this.playerDiv.style.top = `${this.position.y}px`;
 
     requestAnimationFrame(this.MovePlayer.bind(this));
+    // console.log(this.keys);
   }
-}
-
-function AssingChildPlatformParams(
-  childPlatformDiv,
-  platformImg,
-  hightAndWidth
-) {
-  childPlatformDiv.style.backgroundImage = platformImg;
-  childPlatformDiv.style.backgroundSize = "cover";
-  childPlatformDiv.style.width = hightAndWidth;
-  childPlatformDiv.style.height = hightAndWidth;
-}
-function AssingFramePlatformParams(framePlatformDiv, postion, width, height) {
-  framePlatformDiv.className = "platform";
-  framePlatformDiv.style.display = "flex";
-  framePlatformDiv.style.position = "absolute";
-  framePlatformDiv.style.left = `${postion.x}px`;
-  framePlatformDiv.style.top = `${postion.y}px`;
-  framePlatformDiv.style.width = `${width}px`;
-  framePlatformDiv.style.height = `${height}px`;
-  framePlatformDiv.style.zIndex = 10;
 }
 
 // function checkCollision(player, platforms) {
 //   if (player.)
-
-  
 
 // }
 
@@ -177,16 +192,11 @@ const platform1 = new Platform(2, 1, "grass", 221, 124);
 const platform2 = new Platform(2, 1, "grass", 1050, 350);
 const platform3 = new Platform(5, 1, "grass", 287, 500);
 
-
-
 platform1.CreatePlatform();
 platform2.CreatePlatform();
 platform3.CreatePlatform();
 
 let platforms = [platform1, platform2, platform3];
-
-
-
 
 const player1 = new Player(300, 150);
 
