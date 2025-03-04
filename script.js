@@ -64,7 +64,6 @@ class Platform {
       if (this.numberOfBlocksX == 1) {
         platformType = "Single";
       } else {
-
         if (platformIndex == 0) {
           platformType = "Left";
         } else if (platformIndex == this.numberOfBlocksX - 1) {
@@ -98,14 +97,7 @@ class Player {
     this.width = 78;
     this.height = 84;
 
-
-    this.PointA = this.position;
-    this.PointB = new Point(this.position.x + this.width, this.position.y);
-    this.PointC = new Point(this.position.x, this.position.y + this.height);
-    this.PointD = new Point(
-      this.position.x + this.width,
-      this.position.y + this.height
-    );
+    this.UpdateHitbox();
   }
   UpdateHitbox() {
     this.PointA = this.position;
@@ -116,12 +108,19 @@ class Player {
       this.position.y + this.height
     );
   }
+  copy() {
+    const copy = new Player(this.startingPos.x, this.startingPos.y);
+    copy.position = new Point(this.position.x, this.position.y);
+    copy.keys = [...this.keys];
+    copy.width = this.width;
+    copy.height = this.height;
+    return copy;
+  }
 
   LoadPlayer() {
     this.playerDiv = document.createElement("div");
     this.playerDiv.style.backgroundImage =
       "url('img/characters/player/idle.png')";
-
     this.playerDiv.className = "player";
     this.playerDiv.style.position = "absolute";
     this.playerDiv.style.left = `${this.startingPos.x}px`;
@@ -131,6 +130,7 @@ class Player {
     this.playerDiv.style.height = `${this.height}px`;
 
     document.body.appendChild(this.playerDiv);
+    this.UpdateHitbox();
   }
   InititatePlayerMovement() {
     document.addEventListener("keydown", (e) => {
@@ -149,45 +149,138 @@ class Player {
     this.MovePlayer.bind(this);
     this.MovePlayer();
   }
+  move(dx, dy, player, suggestedMovementPlayer) {
+    suggestedMovementPlayer.UpdateHitbox();
+    suggestedMovementPlayer.position.x += dx;
+    suggestedMovementPlayer.position.y += dy;
+    suggestedMovementPlayer.UpdateHitbox();
+
+    let collisions = checkCollision(suggestedMovementPlayer, platforms);
+
+    if (collisions.length > 0) {
+      if (collisions.indexOf("Top") != -1) {
+        if (dy < 0) {
+          dy = 0;
+        }
+      }
+      if (collisions.indexOf("Bottom") != -1) {
+        if (dy > 0) {
+          dy = 0;
+        }
+      }
+      if (collisions.indexOf("Left") != -1) {
+        if (dx < 0) {
+          dx = 0;
+        }
+      }
+      if (collisions.indexOf("Right") != -1) {
+        if (dx > 0) {
+          dx = 0;
+        }
+      }
+    }
+
+    player.position.x += dx;
+    player.position.y += dy;
+    player.UpdateHitbox();
+  }
 
   MovePlayer(e) {
+    let suggestedMovementPlayer = this.copy();
+    // console.log(suggestedMovementPlayer.position);
     if (this.keys.indexOf("ArrowRight") != -1 || this.keys.indexOf("d") != -1) {
-      this.position.x += 10;
+      this.move(10, 0, this, suggestedMovementPlayer);
     }
+    suggestedMovementPlayer = this.copy();
     if (this.keys.indexOf("ArrowLeft") != -1 || this.keys.indexOf("a") != -1) {
-      this.position.x -= 10;
+      this.move(-10, 0, this, suggestedMovementPlayer);
     }
-    if (this.keys.indexOf("ArrowUp") != -1 || this.keys.indexOf("w") != -1) {
-      this.position.y -= 10;
-    }
-    if (this.keys.indexOf("ArrowDown") != -1 || this.keys.indexOf("s") != -1) {
-      this.position.y += 10;
-    }
-    this.UpdateHitbox();
-    
-    checkCollision(player1, platforms);
+    suggestedMovementPlayer = this.copy();
 
+    if (this.keys.indexOf("ArrowUp") != -1 || this.keys.indexOf("w") != -1) {
+      this.move(0, -10, this, suggestedMovementPlayer);
+    }
+    suggestedMovementPlayer = this.copy();
+    if (this.keys.indexOf("ArrowDown") != -1 || this.keys.indexOf("s") != -1) {
+      this.move(0, 10, this, suggestedMovementPlayer);
+    }
+    suggestedMovementPlayer = this.copy();
+
+    this.UpdateHitbox();
     this.playerDiv.style.left = `${this.position.x}px`;
     this.playerDiv.style.top = `${this.position.y}px`;
-
-    
+    this.UpdateHitbox();
 
     requestAnimationFrame(this.MovePlayer.bind(this));
-    // console.log(this.keys);
   }
+}
+function inRange(value, min, max) {
+  return value >= min && value <= max;
 }
 
 function checkCollision(player, platforms) {
-  platforms.forEach((platform) => {
-    console.log(player.PointB);
-    if (
-      player.PointB.x > platform.PointA.x &&
-      player.PointB.y > platform.PointA.y
-    ) {
-      console.log("COLLISION");
+  gameGui = document.querySelector("#gameGui");
+  // let collision = false;
+  let collisions = [];
+  platformHitboxMargin = 0.3;
+
+  for (let i = 0; i < platforms.length; i++) {
+    let platform = platforms[i];
+    console.log("Index: " + i);
+    console.log("Platform: " + platform);
+
+    if (inRange(player.PointD.x, platform.PointA.x, platform.PointB.x)) {
+      if (
+        inRange(
+          player.PointD.y,
+          platform.PointA.y,
+          platform.PointA.y + platform.height * platformHitboxMargin
+        )
+      ) {
+        collisions.push("Bottom");
+      }
+      if (
+        inRange(
+          player.PointA.y,
+          platform.PointC.y - platform.height * platformHitboxMargin,
+          platform.PointC.y
+        )
+      ) {
+        collisions.push("Top");
+      }
     }
-  });
+    if (
+      inRange(player.PointD.y, platform.PointA.y, platform.PointC.y) ||
+      inRange(player.PointA.y, platform.PointA.y, platform.PointC.y)
+    ) {
+      if (
+        inRange(
+          player.PointD.x,
+          platform.PointA.x,
+          platform.PointA.x + platform.width * platformHitboxMargin
+        )
   
+      ) {
+        collisions.push("Right");
+      }
+      if (
+        inRange(
+          player.PointA.x,
+          platform.PointB.x - platform.height * platformHitboxMargin,
+          platform.PointB.x
+        ) ||
+        inRange(
+          player.PointA.x,
+          platform.PointB.x - platform.height * platformHitboxMargin,
+          platform.PointB.x
+        )
+      ) {
+        collisions.push("Left");
+      }
+    }
+  }
+  console.log("Collisions: " + collisions);
+  return collisions;
 }
 
 document.onmousemove = function (e) {
@@ -204,11 +297,9 @@ platform1.CreatePlatform();
 platform2.CreatePlatform();
 platform3.CreatePlatform();
 
-let platforms = [platform1];
+let platforms = [platform1, platform2, platform3];
 
-const player1 = new Player(300, 150);
+const player1 = new Player(650, 250);
 
 player1.LoadPlayer();
 player1.InititatePlayerMovement();
-
-
