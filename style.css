@@ -22,3 +22,24 @@ body {
 body * {
   border: solid 1px black;
 }
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 99;
+}
+#DebugConsole {
+  background-color: black;
+  color: white;
+  width: 200px;
+  height: 100px;
+  text-align: center;
+  border: solid 1px white;
+  border-radius: 15px;
+
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 100;
+}

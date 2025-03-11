@@ -5,6 +5,14 @@ class Point {
     this.xy = [x, y];
   }
 }
+class Vector {
+  constructor(dx, dy) {
+    this.dx = dx;
+    this.dy = dy;
+    this.dxdy = [dx, dy];
+  }
+}
+
 class Platform {
   constructor(width, height, type, x, y) {
     this.platformHeightAndWidth = 128; // Automate this ??
@@ -26,6 +34,7 @@ class Platform {
       this.position.y + this.height
     );
   }
+
   assingFramePlatformParams(framePlatformDiv, postion, width, height) {
     framePlatformDiv.className = "platform";
     framePlatformDiv.style.display = "flex";
@@ -93,12 +102,20 @@ class Player {
     this.startingPos = new Point(startingPosX, startingPosY);
     this.position = new Point(startingPosX, startingPosY);
     this.keys = [];
+    // this.collisions = []
 
     this.width = 78;
     this.height = 84;
+    this.ongound = false;
+
+    this.velocety = new Vector(0, 0);
+    this.gravity = 0.7;
+    this.jumpPower = -0.15;
+    this.jumping = false;
 
     this.UpdateHitbox();
   }
+
   UpdateHitbox() {
     this.PointA = this.position;
     this.PointB = new Point(this.position.x + this.width, this.position.y);
@@ -108,6 +125,7 @@ class Player {
       this.position.y + this.height
     );
   }
+
   copy() {
     const copy = new Player(this.startingPos.x, this.startingPos.y);
     copy.position = new Point(this.position.x, this.position.y);
@@ -117,11 +135,13 @@ class Player {
     return copy;
   }
 
-  LoadPlayer() {
+  LoadPlayer(className) {
     this.playerDiv = document.createElement("div");
+    // console.log(className);
+    // console.log(this.playerDiv);
     this.playerDiv.style.backgroundImage =
       "url('img/characters/player/idle.png')";
-    this.playerDiv.className = "player";
+    this.playerDiv.className = className;
     this.playerDiv.style.position = "absolute";
     this.playerDiv.style.left = `${this.startingPos.x}px`;
     this.playerDiv.style.top = `${this.startingPos.y}px`;
@@ -132,30 +152,90 @@ class Player {
     document.body.appendChild(this.playerDiv);
     this.UpdateHitbox();
   }
+  UnloadPlayer() {
+    if (this.playerDiv && document.body.contains(this.playerDiv)) {
+      document.body.removeChild(this.playerDiv);
+    } else {
+      console.warn("playerDiv does not exist or is not in the DOM.");
+    }
+  }
+
   InititatePlayerMovement() {
     document.addEventListener("keydown", (e) => {
       if (this.keys.indexOf(e.key) == -1) {
         this.keys.push(e.key);
       }
     });
-
     document.addEventListener("keyup", (e) => {
       let index = this.keys.indexOf(e.key);
       if (index > -1) {
         this.keys.splice(index, 1);
       }
     });
-
-    this.MovePlayer.bind(this);
-    this.MovePlayer();
   }
-  move(dx, dy, player, suggestedMovementPlayer) {
+  CheckForMovement(suggestedMovementPlayer) {
+    let oldPlayer = false;
+    if (suggestedMovementPlayer) {
+      oldPlayer = suggestedMovementPlayer;
+    }
+    // suggestedMovementPlayer = new Player(this.position.x, this.position.y);
+
+    // console.log(suggestedMovementPlayer.playerDiv);
+
+    suggestedMovementPlayer = this.copy();
+    if (this.keys.indexOf("ArrowRight") != -1 || this.keys.indexOf("d") != -1) {
+      this.move(10, 0, this, suggestedMovementPlayer, oldPlayer);
+    }
+    suggestedMovementPlayer = this.copy();
+    if (this.keys.indexOf("ArrowLeft") != -1 || this.keys.indexOf("a") != -1) {
+      this.move(-10, 0, this, suggestedMovementPlayer, oldPlayer);
+    }
+    suggestedMovementPlayer = this.copy();
+
+    if (this.keys.indexOf("ArrowUp") != -1 || this.keys.indexOf("w") != -1) {
+      this.move(0, -10, this, suggestedMovementPlayer, oldPlayer);
+    }
+    suggestedMovementPlayer = this.copy();
+    if (this.keys.indexOf("ArrowDown") != -1 || this.keys.indexOf("s") != -1) {
+      this.move(0, 10, this, suggestedMovementPlayer, oldPlayer);
+    }
+
+    // console.log(this.keys);
+    suggestedMovementPlayer = this.copy();
+    if (this.keys.indexOf(" ") != -1 || this.keys.indexOf("s") != -1) {
+      this.velocety.dy = this.jumpPower;
+      this.jump(suggestedMovementPlayer);
+      console.log("JUMP");
+
+      let index = this.keys.indexOf(" ");
+      if (index > -1) {
+        this.keys.splice(index, 1);
+      }
+    }
+
+    if (this.jumping) {
+      this.jump(suggestedMovementPlayer);
+    }
+
+    // suggestedMovementPlayer = this.copy();
+
+    // this.UpdateHitbox();
+    this.playerDiv.style.left = `${this.position.x}px`;
+    this.playerDiv.style.top = `${this.position.y}px`;
+    this.UpdateHitbox();
+  }
+
+  move(dx, dy, player, suggestedMovementPlayer, oldPlayer) {
     suggestedMovementPlayer.UpdateHitbox();
     suggestedMovementPlayer.position.x += dx;
     suggestedMovementPlayer.position.y += dy;
     suggestedMovementPlayer.UpdateHitbox();
 
-    let collisions = checkCollision(suggestedMovementPlayer, platforms);
+    let collisions = checkCollision(
+      suggestedMovementPlayer,
+      platforms,
+      oldPlayer
+    );
 
     if (collisions.length > 0) {
       if (collisions.indexOf("Top") != -1) {
@@ -185,64 +265,69 @@ class Player {
     player.UpdateHitbox();
   }
 
-  MovePlayer(e) {
-    let suggestedMovementPlayer = this.copy();
-    // console.log(suggestedMovementPlayer.position);
-    if (this.keys.indexOf("ArrowRight") != -1 || this.keys.indexOf("d") != -1) {
-      this.move(10, 0, this, suggestedMovementPlayer);
-    }
-    suggestedMovementPlayer = this.copy();
-    if (this.keys.indexOf("ArrowLeft") != -1 || this.keys.indexOf("a") != -1) {
-      this.move(-10, 0, this, suggestedMovementPlayer);
-    }
-    suggestedMovementPlayer = this.copy();
+  jump(ghostPlayer) {
 
-    if (this.keys.indexOf("ArrowUp") != -1 || this.keys.indexOf("w") != -1) {
-      this.move(0, -10, this, suggestedMovementPlayer);
+
+    ghostPlayer.velocety.dy += this.gravity;
+    ghostPlayer.position.y += this.velocety.dy;
+    ghostPlayer.UpdateHitbox();
+
+
+    let collisions = checkCollision(ghostPlayer, platforms, this);
+
+
+    if (collisions.indexOf("Bottom") == -1) {
+      this.velocety.dy += this.gravity;
+      this.position.y += this.velocety.dy;
+      this.jumping = true;
     }
-    suggestedMovementPlayer = this.copy();
-    if (this.keys.indexOf("ArrowDown") != -1 || this.keys.indexOf("s") != -1) {
-      this.move(0, 10, this, suggestedMovementPlayer);
-    }
-    suggestedMovementPlayer = this.copy();
 
     this.UpdateHitbox();
-    this.playerDiv.style.left = `${this.position.x}px`;
-    this.playerDiv.style.top = `${this.position.y}px`;
-    this.UpdateHitbox();
-
-    requestAnimationFrame(this.MovePlayer.bind(this));
   }
 }
+
 function inRange(value, min, max) {
   return value >= min && value <= max;
 }
 
-function checkCollision(player, platforms) {
+function checkCollision(ghostPlayer, platforms, realPlayer) {
   gameGui = document.querySelector("#gameGui");
   // let collision = false;
   let collisions = [];
-  platformHitboxMargin = 0.3;
+  platformHitboxMargin = 20;
 
   for (let i = 0; i < platforms.length; i++) {
     let platform = platforms[i];
-    console.log("Index: " + i);
-    console.log("Platform: " + platform);
 
-    if (inRange(player.PointD.x, platform.PointA.x, platform.PointB.x)) {
+    if (inRange(ghostPlayer.PointD.x, platform.PointA.x, platform.PointB.x)) {
       if (
         inRange(
-          player.PointD.y,
+          ghostPlayer.PointD.y,
           platform.PointA.y,
-          platform.PointA.y + platform.height * platformHitboxMargin
+          platform.PointA.y + platformHitboxMargin
         )
       ) {
+        drawHitboxPointsPOINTS(
+          ctx,
+          platform.PointA,
+          platform.PointB,
+          new Point(
+            platform.PointA.x,
+            platform.PointB.y + platformHitboxMargin
+          ),
+          new Point(platform.PointB.x, platform.PointB.y + platformHitboxMargin)
+        );
         collisions.push("Bottom");
+
+        this.ongound = true;
+        this.jumping = false;
+      } else {
+        this.ongound = false;
       }
       if (
         inRange(
-          player.PointA.y,
-          platform.PointC.y - platform.height * platformHitboxMargin,
+          ghostPlayer.PointA.y,
+          platform.PointC.y - platformHitboxMargin,
           platform.PointC.y
         )
       ) {
@@ -250,37 +335,119 @@ function checkCollision(player, platforms) {
       }
     }
     if (
-      inRange(player.PointD.y, platform.PointA.y, platform.PointC.y) ||
-      inRange(player.PointA.y, platform.PointA.y, platform.PointC.y)
+      inRange(ghostPlayer.PointD.y, platform.PointA.y, platform.PointC.y) ||
+      inRange(ghostPlayer.PointA.y, platform.PointA.y, platform.PointC.y)
     ) {
       if (
         inRange(
-          player.PointD.x,
+          ghostPlayer.PointD.x,
           platform.PointA.x,
-          platform.PointA.x + platform.width * platformHitboxMargin
+          platform.PointA.x + platformHitboxMargin
         )
-  
       ) {
         collisions.push("Right");
       }
       if (
         inRange(
-          player.PointA.x,
-          platform.PointB.x - platform.height * platformHitboxMargin,
+          ghostPlayer.PointA.x,
+          platform.PointB.x - platformHitboxMargin,
           platform.PointB.x
         ) ||
         inRange(
-          player.PointA.x,
-          platform.PointB.x - platform.height * platformHitboxMargin,
+          ghostPlayer.PointB.x,
+          platform.PointB.x - platformHitboxMargin,
           platform.PointB.x
         )
       ) {
         collisions.push("Left");
+
+        drawHitboxPointsPOINTS(
+          ctx,
+          new Point(
+            platform.PointB.x - platformHitboxMargin,
+            platform.PointB.y
+          ),
+          platform.PointB,
+          new Point(
+            platform.PointD.x - platformHitboxMargin,
+            platform.PointD.y
+          ),
+          platform.PointD
+        );
       }
     }
   }
-  console.log("Collisions: " + collisions);
+  if (collisions.length != 0) {
+    suggestedMovementPlayer.LoadPlayer("ghost");
+    realPlayer.UnloadPlayer();
+  }
+
+  debugConsole.textContent = collisions;
+
+  // console.log("Collisions: " + collisions);
   return collisions;
+}
+
+function drawDot(ctx, x, y, color) {
+  ctx.beginPath();
+  ctx.arc(x, y, 5, 0, 2 * Math.PI, false);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function drawHitboxPoints(ctx, entity) {
+  drawDot(ctx, entity.PointA.x, entity.PointA.y, "red");
+  drawDot(ctx, entity.PointB.x, entity.PointB.y, "green");
+  drawDot(ctx, entity.PointC.x, entity.PointC.y, "blue");
+  drawDot(ctx, entity.PointD.x, entity.PointD.y, "yellow");
+  // console.log(
+  //   "---------------------------------------------------------------"
+  // );
+  // console.log(`A: (${entity.PointA.x}, ${entity.PointA.y})`);
+  // console.log(`B: (${entity.PointB.x}, ${entity.PointB.y})`);
+  // console.log(`C: (${entity.PointC.x}, ${entity.PointC.y})`);
+  // console.log(`D: (${entity.PointD.x}, ${entity.PointD.y})`);
+}
+function drawHitboxPointsPOINTS(ctx, PointA, PointB, PointC, PointD) {
+  drawDot(ctx, PointA.x, PointA.y, "red");
+  drawDot(ctx, PointB.x, PointB.y, "green");
+  drawDot(ctx, PointC.x, PointC.y, "blue");
+  drawDot(ctx, PointD.x, PointD.y, "yellow");
+  // console.log(
+  //   "---------------------------------------------------------------"
+  // );
+  // console.log(`A: (${entity.PointA.x}, ${entity.PointA.y})`);
+  // console.log(`B: (${entity.PointB.x}, ${entity.PointB.y})`);
+  // console.log(`C: (${entity.PointC.x}, ${entity.PointC.y})`);
+  // console.log(`D: (${entity.PointD.x}, ${entity.PointD.y})`);
+}
+function fillRectangle(ctx, A, B, C, D, color) {
+  ctx.fillStyle = color;
+
+  // Calculate the top-left corner (min x, min y)
+  let x = Math.min(A.x, B.x, C.x, D.x);
+  let y = Math.min(A.y, B.y, C.y, D.y);
+
+  // Calculate width and height
+  let width = Math.max(A.x, B.x, C.x, D.x) - x;
+  let height = Math.max(A.y, B.y, C.y, D.y) - y;
+
+  // Draw the filled rectangle
+  ctx.fillRect(x, y, width, height);
+}
+function gameLoop() {
+  // ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+  // drawHitboxPoints(ctx, player1);
+  // for (i = 0; i < platforms.length; i++) {
+  //   let platform = platforms[i];
+  //   drawHitboxPoints(ctx, platform);
+  // }
+  suggestedMovementPlayer = new Player(player1.position.x, player1.position.y);
+  player1.CheckForMovement(suggestedMovementPlayer);
+
+  // console.log("Gameloop")
+
+  requestAnimationFrame(gameLoop);
 }
 
 document.onmousemove = function (e) {
@@ -288,6 +455,12 @@ document.onmousemove = function (e) {
   var y = e.pageY;
   e.target.title = "X is " + x + " and Y is " + y;
 };
+
+const canvas = document.createElement("canvas");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+document.body.appendChild(canvas);
+const ctx = canvas.getContext("2d");
 
 const platform1 = new Platform(2, 1, "grass", 221, 124);
 const platform2 = new Platform(2, 1, "grass", 1050, 350);
@@ -301,5 +474,9 @@ let platforms = [platform1, platform2, platform3];
 
 const player1 = new Player(650, 250);
 
-player1.LoadPlayer();
+player1.LoadPlayer("player1");
 player1.InititatePlayerMovement();
+
+const debugConsole = document.querySelector("#DebugText");
+
+gameLoop();
