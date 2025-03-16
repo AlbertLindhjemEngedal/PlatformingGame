@@ -38,6 +38,8 @@ class Platform {
   assingFramePlatformParams(framePlatformDiv, postion, width, height) {
     framePlatformDiv.className = "platform";
     framePlatformDiv.style.display = "flex";
+    framePlatformDiv.style.flexDirection = "column";
+
     framePlatformDiv.style.position = "absolute";
     framePlatformDiv.style.left = `${postion.x}px`;
     framePlatformDiv.style.top = `${postion.y}px`;
@@ -45,6 +47,18 @@ class Platform {
     framePlatformDiv.style.height = `${height}px`;
     framePlatformDiv.style.zIndex = 10;
   }
+  assignSlicePlatformParams(slicePlatformDiv, width, height) {
+    slicePlatformDiv.className = "slicePlatform";
+    slicePlatformDiv.style.display = "flex";
+    slicePlatformDiv.style.flexDirection = "row";
+    // slicePlatformDiv.style.position = "absolute";
+    // slicePlatformDiv.style.left = `${postion.x}px`;
+    // slicePlatformDiv.style.top = `${postion.y}px`;
+    slicePlatformDiv.style.width = `${width}px`;
+    slicePlatformDiv.style.height = `${height}px`;
+    slicePlatformDiv.style.zIndex = 10;
+  }
+
   assingChildPlatformParams(childPlatformDiv, platformImg, width, height) {
     childPlatformDiv.className = "childPlatform";
     childPlatformDiv.style.backgroundImage = platformImg;
@@ -52,9 +66,29 @@ class Platform {
     childPlatformDiv.style.width = `${width}px`;
     childPlatformDiv.style.height = `${height}px`;
   }
+  getPlatformYType(numberOfBlocksY, platformYIndex) {
+    let platformType = "Unkown";
+
+    if (numberOfBlocksY == 1) {
+      platformType = "topLevelSingleHeight";
+    } else if (numberOfBlocksY > 1) {
+      if (platformYIndex == 0) {
+        platformType = "topLevelMultiHeight";
+      } else if (platformYIndex == numberOfBlocksY - 1) {
+        platformType = "bottomLevel";
+      } else {
+        platformType = "midLevel";
+      }
+    }
+    return platformType;
+  }
 
   CreatePlatform() {
     const framePlatformDiv = document.createElement("div");
+    let platformXType = "Unkown";
+    let platformYType = "Unkown";
+    let platformImg = "Unkown";
+    const platformImgDir = "img/platformBlocks/";
 
     this.assingFramePlatformParams(
       framePlatformDiv,
@@ -63,44 +97,71 @@ class Platform {
       this.height
     );
 
-    let platformType = "Unkown";
     for (
-      let platformIndex = 0;
-      platformIndex < this.numberOfBlocksX;
-      platformIndex++
+      let platformYIndex = 0;
+      platformYIndex < this.numberOfBlocksY;
+      platformYIndex++
     ) {
-      const childPlatformDiv = document.createElement("div");
-      if (this.numberOfBlocksX == 1) {
-        platformType = "Single";
-      } else {
-        if (platformIndex == 0) {
-          platformType = "Left";
-        } else if (platformIndex == this.numberOfBlocksX - 1) {
-          platformType = "Right";
-        } else {
-          platformType = "Mid";
-        }
-      }
-      let platformImg =
-        "url(" + String.raw`img/128x128/GrassCliff` + platformType + ".png)";
-
-      this.assingChildPlatformParams(
-        childPlatformDiv,
-        platformImg,
-        this.platformHeightAndWidth,
+      const slicePlatformDiv = document.createElement("div");
+      this.assignSlicePlatformParams(
+        slicePlatformDiv,
+        this.width,
         this.platformHeightAndWidth
       );
-      framePlatformDiv.appendChild(childPlatformDiv);
+
+      for (
+        let platformXIndex = 0;
+        platformXIndex < this.numberOfBlocksX;
+        platformXIndex++
+      ) {
+        const childPlatformDiv = document.createElement("div");
+        let imgPath = "unassigned";
+
+        if (this.numberOfBlocksX == 1) {
+          platformXType = "Single";
+          1;
+        } else {
+          if (platformXIndex == 0) {
+            platformXType = "Left";
+          } else if (platformXIndex == this.numberOfBlocksX - 1) {
+            platformXType = "Right";
+          } else {
+            platformXType = "Mid";
+          }
+        }
+        platformYType = this.getPlatformYType(
+          this.numberOfBlocksY,
+          platformYIndex
+        );
+
+        let platformImg =
+          "url(" +
+          platformImgDir +
+          "/" +
+          platformYType +
+          "/" +
+          platformXType +
+          ".png)";
+
+        this.assingChildPlatformParams(
+          childPlatformDiv,
+          platformImg,
+          this.platformHeightAndWidth,
+          this.platformHeightAndWidth
+        );
+        slicePlatformDiv.append(childPlatformDiv);
+      }
+
+      framePlatformDiv.appendChild(slicePlatformDiv);
     }
-    // document.querySelector("#gameGui").appendChild(framePlatformDiv);
     document.body.appendChild(framePlatformDiv);
   }
 }
 
 class Player {
   constructor(startingPosX, startingPosY) {
-    this.width = 73;
-    this.height = 74;
+    this.width = 50;
+    this.height = 50;
     this.pace = new Vector(0.08, 3);
     this.gravity = 0.2;
     this.jumpPower = -10.0;
@@ -114,6 +175,9 @@ class Player {
     this.jumping = false;
     this.onGround = false;
     this.canJump = true;
+
+    this.textureIndex = 1;
+    this.maxTextureIndex = 18;
 
     this.UpdateHitbox();
   }
@@ -155,6 +219,9 @@ class Player {
     this.playerDiv.style.zIndex = 11;
     this.playerDiv.style.width = `${this.width}px`;
     this.playerDiv.style.height = `${this.height}px`;
+    this.playerDiv.style.backgroundSize = "contain"; // Ensure the image is fully contained
+    this.playerDiv.style.backgroundPosition = "center"; // Center the image within the div
+    this.playerDiv.style.backgroundRepeat = "no-repeat"; // Prevent the image from repeating
 
     document.body.appendChild(this.playerDiv);
     this.UpdateHitbox();
@@ -206,15 +273,31 @@ class Player {
     if (this.keys.indexOf("ArrowLeft") != -1 || this.keys.indexOf("a") != -1) {
       this.move(-this.pace.dx, 0, this, ghostPlayer);
     }
-    if (
-      (this.keys.indexOf(" ") != -1 || this.keys.indexOf("w") != -1) &&
-      this.onGround
-    ) {
+    if (this.keys.indexOf(" ") != -1 && this.onGround) {
       this.velocety.dy = this.jumpPower;
       ghostPlayer.velocety.dy = ghostPlayer.jumpPower;
-    }
 
-    // console.log("ABS Velocety: " + Math.abs(this.velocety.dy));
+      if (this.velocety.dx > 0) {
+        this.playerDiv.style.backgroundImage =
+          "url('img/characters/player/facingRight/jumping.png')";
+      } else if (this.velocety.dx < 0) {
+        this.playerDiv.style.backgroundImage =
+          "url('img/characters/player/facingLeft/jumping.png')";
+      }
+    }
+    if (this.velocety.dy > 0.5) {
+      if (this.velocety.dx > 0) {
+        this.playerDiv.style.backgroundImage =
+          "url('img/characters/player/facingRight/landing.png')";
+      } else if (this.velocety.dx < 0) {
+        this.playerDiv.style.backgroundImage =
+          "url('img/characters/player/facingLeft/landing.png')";
+      }
+    }
+    if (this.velocety.dx == 0 && this.velocety.dy == 0) {
+      this.playerDiv.style.backgroundImage =
+        "url('img/characters/player/facingRight/idle.png')";
+    }
 
     ghostPlayer.inheritPosition(this);
 
@@ -234,12 +317,39 @@ class Player {
       this.velocety.dy = this.velocety.dy * -0.7;
     }
 
+    if (
+      this.onGround &&
+      this.keys.indexOf("a") != -1 &&
+      this.keys.indexOf("d") != -1
+    ) {
+      this.velocety.dx = 0;
+    }
+
     this.position.x += this.velocety.dx;
     this.position.y += this.velocety.dy;
 
     this.playerDiv.style.left = `${this.position.x}px`;
     this.playerDiv.style.top = `${this.position.y}px`;
     this.UpdateHitbox();
+  }
+
+  animateRunning(player, direction) {
+    if (this.textureIndex >= this.maxTextureIndex) {
+      player.textureIndex = 1;
+    } else {
+      this.textureIndex += 1;
+    }
+    let imagePath =
+      "url('" +
+      "img/characters/player/" +
+      direction +
+      "/running/" +
+      this.textureIndex +
+      ".png" +
+      "')";
+
+    this.playerDiv.style.backgroundImage = imagePath;
+    // console.log(this.playerDiv.style.backgroundImage);
   }
 
   move(dx, dy, realPlayer, ghostPlayer) {
@@ -259,24 +369,41 @@ class Player {
       realPlayer.onGround = true;
     }
 
-    // if (ghostCollisions.length > 0) {
-    //   if (ghostCollisions.indexOf("Left") != -1) {
-    //     if (dx < 0) {
-    //       realPlayer.velocety.dx = 0;
-    //     }
-    //   }
-    //   if (ghostCollisions.indexOf("Right") != -1) {
-    //     if (dx > 0) {
-    //       realPlayer.velocety.dx = 0;
-    //     }
-    //   }
-    // }
+    if (ghostCollisions.length > 0) {
+      if (
+        ghostCollisions.indexOf("LeftWall") != -1 ||
+        ghostCollisions.indexOf("Left") != -1
+      ) {
+        if (ghostPlayer.velocety.dx < 0) {
+          realPlayer.velocety.dx = 1;
+        }
+      }
+      if (
+        ghostCollisions.indexOf("RightWall") != -1 ||
+        ghostCollisions.indexOf("Right") != -1
+      ) {
+        if (ghostPlayer.velocety.dx > 0) {
+          realPlayer.velocety.dx = -1;
+        }
+      }
+    }
 
     if (Math.abs(realPlayer.velocety.dx) < realPlayer.maxVelocety) {
       realPlayer.velocety.dx += dx;
     }
     if (!ghostPlayer.onGround) {
       realPlayer.velocety.dy += realPlayer.gravity;
+    }
+
+    if (realPlayer.onGround) {
+      // console.log(realPlayer.velocety.dy);
+
+      if (realPlayer.velocety.dx > 0) {
+        this.animateRunning(realPlayer, "facingRight");
+      }
+      if (realPlayer.velocety.dx < 0) {
+        this.animateRunning(realPlayer, "facingLeft");
+      }
     }
 
     realPlayer.UpdateHitbox();
@@ -290,6 +417,8 @@ class Coin {
     this.height = 128;
     this.textureIndex = 1;
     this.maxTextureIndex = 16;
+
+    this.widthAndHeight = 40;
     // this.hitbox
   }
   LoadCoin() {
@@ -302,8 +431,8 @@ class Coin {
     this.coinDiv.style.left = `${this.position.x}px`;
     this.coinDiv.style.top = `${this.position.y}px`;
     this.coinDiv.style.zIndex = 12;
-    this.coinDiv.style.width = `${this.width}px`;
-    this.coinDiv.style.height = `${this.height}px`;
+    this.coinDiv.style.width = `${this.widthAndHeight}px`;
+    this.coinDiv.style.height = `${this.widthAndHeight}px`;
     this.coinDiv.style.backgroundSize = "contain"; // Ensure the image is fully contained
     this.coinDiv.style.backgroundPosition = "center"; // Center the image within the div
     this.coinDiv.style.backgroundRepeat = "no-repeat"; // Prevent the image from repeating
@@ -325,9 +454,6 @@ class Coin {
       this.textureIndex += 1;
     }
     let imagePath = "url('img/coin/2x/image " + this.textureIndex + ".png')";
-    console.log(imagePath);
-    // console.log(hei)
-    // console.log(this);
 
     this.coinDiv.style.backgroundImage = imagePath;
   }
@@ -400,41 +526,64 @@ function checkCollision(ghostPlayer, platforms) {
     }
   }
 
+  if (ghostPlayer.PointC.x < 0 || ghostPlayer.PointC.x > window.innerWidth) {
+    collisions.push("LeftWall");
+  }
+  if (ghostPlayer.PointD.x > window.innerWidth) {
+    collisions.push("RightWall");
+  }
+
   return collisions;
 }
 
 function drawDot(ctx, x, y, color) {
   ctx.beginPath();
-  ctx.arc(x, y, 5, 0, 2 * Math.PI, false);
-  ctx.fillStyle = color;
+  ctx.arc(x, y, 15, 0, 2 * Math.PI, false);
+  ctx.fillStyle = "#ee534f";
   ctx.fill();
 }
+function findCenterPoint(point1, point2) {
+  const centerX = (point1.x + point2.x) / 2;
+  const centerY = (point1.y + point2.y) / 2;
+  return new Point(centerX, centerY);
+}
 function gameLoop(action, rangeIndex) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   let spacing = 3;
 
   if (rangeIndex >= spacing) {
-    coins.forEach(coin => {
+    coins.forEach((coin) => {
       coin.loadNewTexture();
-      
     });
     rangeIndex = 0;
   } else {
     rangeIndex += 1;
   }
 
-
-
-
-  
-
   ghostPlayer = player1;
   player1.CheckForMovement(ghostPlayer);
 
-  
+  playerCenter = findCenterPoint(player1.PointA, player1.PointD);
+
+  drawDot(ctx, playerCenter.x, playerCenter.y, "red");
+
+  console.log(player1.playerDiv.style.backgroundImage);
 
   requestAnimationFrame(gameLoop.bind(this, action, rangeIndex));
 }
 
+
+function platformPlacingModeDev() {
+  document.addEventListener("click", (e) => {
+    let x = e.pageX;
+    let y = e.pageY;
+
+    console.log(
+      'const platformX = new Platform(2, 1, "grass", ' + x + ", " + y + ");"
+    );
+    console.log("platformX.CreatePlatform();");
+  });
+}
 document.onmousemove = function (e) {
   var x = e.pageX;
   var y = e.pageY;
@@ -447,17 +596,20 @@ canvas.height = window.innerHeight;
 document.body.appendChild(canvas);
 const ctx = canvas.getContext("2d");
 
-const platform1 = new Platform(2, 1, "grass", 221, 124);
-const platform2 = new Platform(20, 1, "grass", 0, 500);
-// const platform3 = new Platform(5, 1, "grass", 287, 500);
+//Level 1
+const platform1 = new Platform(4, 3, "grass", 0, 600);
+// const platform2 = new Platform(3, 1, "grass", 550, 450);
+const platform2 = new Platform(3, 1, "grass", platform1.width, 500);
+const platform3 = new Platform(1, 2, "grass", 1000, 450);
 
 platform1.CreatePlatform();
 platform2.CreatePlatform();
+platform3.CreatePlatform();
 // platform3.CreatePlatform();
 
-let platforms = [platform1, platform2];
+let platforms = [platform1, platform2, platform3];
 
-const player1 = new Player(1100, 150);
+const player1 = new Player(20, 200);
 
 player1.LoadPlayer("player1");
 player1.InititatePlayerMovement();
@@ -473,5 +625,7 @@ let coins = [coin1, coin2];
 
 let action = 0;
 let rangeIndex = 0;
+
+// platformPlacingModeDev();
 
 gameLoop(action, rangeIndex);
