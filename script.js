@@ -198,7 +198,7 @@ class Player {
 
   CheckForMovement(ghostPlayer) {
     debugConsole.textContent = this.velocety.dx;
-    console.log(this.velocety.dx);
+    // console.log(this.velocety.dx);
 
     if (this.keys.indexOf("ArrowRight") != -1 || this.keys.indexOf("d") != -1) {
       this.move(this.pace.dx, 0, this, ghostPlayer);
@@ -288,7 +288,7 @@ class Coin {
     this.position = new Point(x, y);
     this.width = 128;
     this.height = 128;
-    this.textureIndex = 0;
+    this.textureIndex = 1;
     this.maxTextureIndex = 16;
     // this.hitbox
   }
@@ -326,6 +326,7 @@ class Coin {
     }
     let imagePath = "url('img/coin/2x/image " + this.textureIndex + ".png')";
     console.log(imagePath);
+    // console.log(hei)
     // console.log(this);
 
     this.coinDiv.style.backgroundImage = imagePath;
@@ -410,18 +411,6 @@ function drawDot(ctx, x, y, color) {
 }
 function gameLoop(action, rangeIndex) {
   let spacing = 3;
-
-  // if (rangeIndex >= spacing) {
-  //   if (action > coins.length - 1) {
-  //     action = 0;
-  //   }
-  //   reloadingCoin = coins[action];
-  //   reloadingCoin.loadNewTexture();
-  //   action += 1;
-  //   rangeIndex = 0;
-  // } else {
-  //   rangeIndex += 1;
-  // }
 
   if (rangeIndex >= spacing) {
     coins.forEach(coin => {
