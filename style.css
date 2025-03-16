@@ -19,9 +19,9 @@ body {
 /* .player {
   border: solid 1px black;
 } */
-body * {
+/* body * {
   border: solid 1px black;
-}
+} */
 canvas {
   position: absolute;
   top: 0;

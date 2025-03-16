@@ -15,7 +15,7 @@ class Vector {
 
 class Platform {
   constructor(width, height, type, x, y) {
-    this.platformHeightAndWidth = 128; // Automate this ??
+    this.platformHeightAndWidth = 96; // Automate this ??
 
     this.numberOfBlocksX = width;
     this.numberOfBlocksY = height;
@@ -27,10 +27,10 @@ class Platform {
     // X and Y pos are the top left corner of the platform
 
     this.PointA = this.position;
-    this.PointB = new Point(this.position.x + this.width, this.position.y);
+    this.PointB = new Point(this.position.x + this.width + 80, this.position.y);
     this.PointC = new Point(this.position.x, this.position.y + this.height);
     this.PointD = new Point(
-      this.position.x + this.width,
+      this.position.x + this.width + 80,
       this.position.y + this.height
     );
   }
@@ -99,19 +99,21 @@ class Platform {
 
 class Player {
   constructor(startingPosX, startingPosY) {
+    this.width = 73;
+    this.height = 74;
+    this.pace = new Vector(0.08, 3);
+    this.gravity = 0.2;
+    this.jumpPower = -10.0;
+    this.maxVelocety = 5;
+    this.friction = 0.1;
+
     this.startingPos = new Point(startingPosX, startingPosY);
     this.position = new Point(startingPosX, startingPosY);
     this.keys = [];
-    // this.collisions = []
-
-    this.width = 78;
-    this.height = 84;
-    this.ongound = false;
-
     this.velocety = new Vector(0, 0);
-    this.gravity = 0.7;
-    this.jumpPower = -0.15;
     this.jumping = false;
+    this.onGround = false;
+    this.canJump = true;
 
     this.UpdateHitbox();
   }
@@ -125,20 +127,25 @@ class Player {
       this.position.y + this.height
     );
   }
+  inheritPosition(player) {
+    this.position = player.position;
+    this.UpdateHitbox();
+  }
 
   copy() {
     const copy = new Player(this.startingPos.x, this.startingPos.y);
-    copy.position = new Point(this.position.x, this.position.y);
+    copy.inheritPosition(this);
+
     copy.keys = [...this.keys];
     copy.width = this.width;
     copy.height = this.height;
+
     return copy;
   }
 
   LoadPlayer(className) {
     this.playerDiv = document.createElement("div");
-    // console.log(className);
-    // console.log(this.playerDiv);
+
     this.playerDiv.style.backgroundImage =
       "url('img/characters/player/idle.png')";
     this.playerDiv.className = className;
@@ -168,121 +175,160 @@ class Player {
     });
     document.addEventListener("keyup", (e) => {
       let index = this.keys.indexOf(e.key);
+
       if (index > -1) {
         this.keys.splice(index, 1);
+
+        if (
+          this.keys.indexOf("ArrowRight") == -1 &&
+          this.keys.indexOf("ArrowLeft") == -1 &&
+          this.keys.indexOf("d") == -1 &&
+          this.keys.indexOf("a") == -1
+        ) {
+          try {
+            this.velocety.dx = 0;
+            ghostPlayer.velocety.dx = 0;
+          } catch (error) {
+            console.error("Error: Velocity: ", error);
+          }
+        }
       }
     });
   }
-  CheckForMovement(suggestedMovementPlayer) {
-    let oldPlayer = false;
-    if (suggestedMovementPlayer) {
-      oldPlayer = suggestedMovementPlayer;
-    }
-    // suggestedMovementPlayer = new Player(this.position.x, this.position.y);
 
-    // console.log(suggestedMovementPlayer.playerDiv);
+  CheckForMovement(ghostPlayer) {
+    debugConsole.textContent = this.velocety.dx;
+    console.log(this.velocety.dx);
 
-    suggestedMovementPlayer = this.copy();
     if (this.keys.indexOf("ArrowRight") != -1 || this.keys.indexOf("d") != -1) {
-      this.move(10, 0, this, suggestedMovementPlayer, oldPlayer);
+      this.move(this.pace.dx, 0, this, ghostPlayer);
     }
-    suggestedMovementPlayer = this.copy();
     if (this.keys.indexOf("ArrowLeft") != -1 || this.keys.indexOf("a") != -1) {
-      this.move(-10, 0, this, suggestedMovementPlayer, oldPlayer);
+      this.move(-this.pace.dx, 0, this, ghostPlayer);
     }
-    suggestedMovementPlayer = this.copy();
-
-    if (this.keys.indexOf("ArrowUp") != -1 || this.keys.indexOf("w") != -1) {
-      this.move(0, -10, this, suggestedMovementPlayer, oldPlayer);
-    }
-    suggestedMovementPlayer = this.copy();
-    if (this.keys.indexOf("ArrowDown") != -1 || this.keys.indexOf("s") != -1) {
-      this.move(0, 10, this, suggestedMovementPlayer, oldPlayer);
-    }
-
-    // console.log(this.keys);
-    suggestedMovementPlayer = this.copy();
-    if (this.keys.indexOf(" ") != -1 || this.keys.indexOf("s") != -1) {
+    if (
+      (this.keys.indexOf(" ") != -1 || this.keys.indexOf("w") != -1) &&
+      this.onGround
+    ) {
       this.velocety.dy = this.jumpPower;
-      this.jump(suggestedMovementPlayer);
-      console.log("JUMP");
-
-      let index = this.keys.indexOf(" ");
-      if (index > -1) {
-        this.keys.splice(index, 1);
-      }
+      ghostPlayer.velocety.dy = ghostPlayer.jumpPower;
     }
 
-    if (this.jumping) {
-      this.jump(suggestedMovementPlayer);
+    // console.log("ABS Velocety: " + Math.abs(this.velocety.dy));
+
+    ghostPlayer.inheritPosition(this);
+
+    let ghostCollisions = checkCollision(ghostPlayer, platforms);
+    if (ghostCollisions.indexOf("Bottom") != -1) {
+      this.onGround = true;
+    } else {
+      this.onGround = false;
     }
 
-    // suggestedMovementPlayer = this.copy();
+    if (this.onGround && this.velocety.dy > -0.5) {
+      this.velocety.dy = 0;
+    } else {
+      this.velocety.dy += this.gravity;
+    }
+    if (ghostCollisions.indexOf("Top") != -1) {
+      this.velocety.dy = this.velocety.dy * -0.7;
+    }
 
-    // this.UpdateHitbox();
+    this.position.x += this.velocety.dx;
+    this.position.y += this.velocety.dy;
+
     this.playerDiv.style.left = `${this.position.x}px`;
     this.playerDiv.style.top = `${this.position.y}px`;
     this.UpdateHitbox();
   }
 
-  move(dx, dy, player, suggestedMovementPlayer, oldPlayer) {
-    suggestedMovementPlayer.UpdateHitbox();
-    suggestedMovementPlayer.position.x += dx;
-    suggestedMovementPlayer.position.y += dy;
-    suggestedMovementPlayer.UpdateHitbox();
+  move(dx, dy, realPlayer, ghostPlayer) {
+    ghostPlayer.inheritPosition(realPlayer);
 
-    let collisions = checkCollision(
-      suggestedMovementPlayer,
-      platforms,
-      oldPlayer
-    );
-
-    if (collisions.length > 0) {
-      if (collisions.indexOf("Top") != -1) {
-        if (dy < 0) {
-          dy = 0;
-        }
-      }
-      if (collisions.indexOf("Bottom") != -1) {
-        if (dy > 0) {
-          dy = 0;
-        }
-      }
-      if (collisions.indexOf("Left") != -1) {
-        if (dx < 0) {
-          dx = 0;
-        }
-      }
-      if (collisions.indexOf("Right") != -1) {
-        if (dx > 0) {
-          dx = 0;
-        }
-      }
+    if (Math.abs(ghostPlayer.velocety.dx) < ghostPlayer.maxVelocety) {
+      ghostPlayer.velocety.dx += dx;
     }
 
-    player.position.x += dx;
-    player.position.y += dy;
-    player.UpdateHitbox();
-  }
+    ghostPlayer.position.x += ghostPlayer.velocety.dx;
 
-  jump(ghostPlayer) {
-
-
-    ghostPlayer.velocety.dy += this.gravity;
-    ghostPlayer.position.y += this.velocety.dy;
     ghostPlayer.UpdateHitbox();
 
+    let ghostCollisions = checkCollision(ghostPlayer, platforms);
 
-    let collisions = checkCollision(ghostPlayer, platforms, this);
-
-
-    if (collisions.indexOf("Bottom") == -1) {
-      this.velocety.dy += this.gravity;
-      this.position.y += this.velocety.dy;
-      this.jumping = true;
+    if (ghostPlayer.onGround) {
+      realPlayer.onGround = true;
     }
 
-    this.UpdateHitbox();
+    // if (ghostCollisions.length > 0) {
+    //   if (ghostCollisions.indexOf("Left") != -1) {
+    //     if (dx < 0) {
+    //       realPlayer.velocety.dx = 0;
+    //     }
+    //   }
+    //   if (ghostCollisions.indexOf("Right") != -1) {
+    //     if (dx > 0) {
+    //       realPlayer.velocety.dx = 0;
+    //     }
+    //   }
+    // }
+
+    if (Math.abs(realPlayer.velocety.dx) < realPlayer.maxVelocety) {
+      realPlayer.velocety.dx += dx;
+    }
+    if (!ghostPlayer.onGround) {
+      realPlayer.velocety.dy += realPlayer.gravity;
+    }
+
+    realPlayer.UpdateHitbox();
+  }
+}
+
+class Coin {
+  constructor(x, y) {
+    this.position = new Point(x, y);
+    this.width = 128;
+    this.height = 128;
+    this.textureIndex = 0;
+    this.maxTextureIndex = 16;
+    // this.hitbox
+  }
+  LoadCoin() {
+    this.coinDiv = document.createElement("div");
+
+    this.coinDiv.style.backgroundImage =
+      "url('img/coin/2x/image " + this.textureIndex + ".png')";
+    this.coinDiv.className = "coin";
+    this.coinDiv.style.position = "absolute";
+    this.coinDiv.style.left = `${this.position.x}px`;
+    this.coinDiv.style.top = `${this.position.y}px`;
+    this.coinDiv.style.zIndex = 12;
+    this.coinDiv.style.width = `${this.width}px`;
+    this.coinDiv.style.height = `${this.height}px`;
+    this.coinDiv.style.backgroundSize = "contain"; // Ensure the image is fully contained
+    this.coinDiv.style.backgroundPosition = "center"; // Center the image within the div
+    this.coinDiv.style.backgroundRepeat = "no-repeat"; // Prevent the image from repeating
+
+    document.body.appendChild(this.coinDiv);
+  }
+  UnloadCoin() {
+    if (this.coinDiv && document.body.contains(this.coinDiv)) {
+      document.body.removeChild(this.coinDiv);
+    } else {
+      console.warn("coinDiv does not exist or is not in the DOM.");
+    }
+  }
+
+  loadNewTexture() {
+    if (this.textureIndex >= this.maxTextureIndex) {
+      this.textureIndex = 1;
+    } else {
+      this.textureIndex += 1;
+    }
+    let imagePath = "url('img/coin/2x/image " + this.textureIndex + ".png')";
+    console.log(imagePath);
+    // console.log(this);
+
+    this.coinDiv.style.backgroundImage = imagePath;
   }
 }
 
@@ -290,7 +336,7 @@ function inRange(value, min, max) {
   return value >= min && value <= max;
 }
 
-function checkCollision(ghostPlayer, platforms, realPlayer) {
+function checkCollision(ghostPlayer, platforms) {
   gameGui = document.querySelector("#gameGui");
   // let collision = false;
   let collisions = [];
@@ -307,22 +353,11 @@ function checkCollision(ghostPlayer, platforms, realPlayer) {
           platform.PointA.y + platformHitboxMargin
         )
       ) {
-        drawHitboxPointsPOINTS(
-          ctx,
-          platform.PointA,
-          platform.PointB,
-          new Point(
-            platform.PointA.x,
-            platform.PointB.y + platformHitboxMargin
-          ),
-          new Point(platform.PointB.x, platform.PointB.y + platformHitboxMargin)
-        );
         collisions.push("Bottom");
 
-        this.ongound = true;
-        this.jumping = false;
+        // ghostPlayer.onGround = true;
       } else {
-        this.ongound = false;
+        // ghostPlayer.onGround = false;
       }
       if (
         inRange(
@@ -360,31 +395,10 @@ function checkCollision(ghostPlayer, platforms, realPlayer) {
         )
       ) {
         collisions.push("Left");
-
-        drawHitboxPointsPOINTS(
-          ctx,
-          new Point(
-            platform.PointB.x - platformHitboxMargin,
-            platform.PointB.y
-          ),
-          platform.PointB,
-          new Point(
-            platform.PointD.x - platformHitboxMargin,
-            platform.PointD.y
-          ),
-          platform.PointD
-        );
       }
     }
   }
-  if (collisions.length != 0) {
-    suggestedMovementPlayer.LoadPlayer("ghost");
-    realPlayer.UnloadPlayer();
-  }
 
-  debugConsole.textContent = collisions;
-
-  // console.log("Collisions: " + collisions);
   return collisions;
 }
 
@@ -394,60 +408,42 @@ function drawDot(ctx, x, y, color) {
   ctx.fillStyle = color;
   ctx.fill();
 }
+function gameLoop(action, rangeIndex) {
+  let spacing = 3;
 
-function drawHitboxPoints(ctx, entity) {
-  drawDot(ctx, entity.PointA.x, entity.PointA.y, "red");
-  drawDot(ctx, entity.PointB.x, entity.PointB.y, "green");
-  drawDot(ctx, entity.PointC.x, entity.PointC.y, "blue");
-  drawDot(ctx, entity.PointD.x, entity.PointD.y, "yellow");
-  // console.log(
-  //   "---------------------------------------------------------------"
-  // );
-  // console.log(`A: (${entity.PointA.x}, ${entity.PointA.y})`);
-  // console.log(`B: (${entity.PointB.x}, ${entity.PointB.y})`);
-  // console.log(`C: (${entity.PointC.x}, ${entity.PointC.y})`);
-  // console.log(`D: (${entity.PointD.x}, ${entity.PointD.y})`);
-}
-function drawHitboxPointsPOINTS(ctx, PointA, PointB, PointC, PointD) {
-  drawDot(ctx, PointA.x, PointA.y, "red");
-  drawDot(ctx, PointB.x, PointB.y, "green");
-  drawDot(ctx, PointC.x, PointC.y, "blue");
-  drawDot(ctx, PointD.x, PointD.y, "yellow");
-  // console.log(
-  //   "---------------------------------------------------------------"
-  // );
-  // console.log(`A: (${entity.PointA.x}, ${entity.PointA.y})`);
-  // console.log(`B: (${entity.PointB.x}, ${entity.PointB.y})`);
-  // console.log(`C: (${entity.PointC.x}, ${entity.PointC.y})`);
-  // console.log(`D: (${entity.PointD.x}, ${entity.PointD.y})`);
-}
-function fillRectangle(ctx, A, B, C, D, color) {
-  ctx.fillStyle = color;
-
-  // Calculate the top-left corner (min x, min y)
-  let x = Math.min(A.x, B.x, C.x, D.x);
-  let y = Math.min(A.y, B.y, C.y, D.y);
-
-  // Calculate width and height
-  let width = Math.max(A.x, B.x, C.x, D.x) - x;
-  let height = Math.max(A.y, B.y, C.y, D.y) - y;
-
-  // Draw the filled rectangle
-  ctx.fillRect(x, y, width, height);
-}
-function gameLoop() {
-  // ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-  // drawHitboxPoints(ctx, player1);
-  // for (i = 0; i < platforms.length; i++) {
-  //   let platform = platforms[i];
-  //   drawHitboxPoints(ctx, platform);
+  // if (rangeIndex >= spacing) {
+  //   if (action > coins.length - 1) {
+  //     action = 0;
+  //   }
+  //   reloadingCoin = coins[action];
+  //   reloadingCoin.loadNewTexture();
+  //   action += 1;
+  //   rangeIndex = 0;
+  // } else {
+  //   rangeIndex += 1;
   // }
-  suggestedMovementPlayer = new Player(player1.position.x, player1.position.y);
-  player1.CheckForMovement(suggestedMovementPlayer);
 
-  // console.log("Gameloop")
+  if (rangeIndex >= spacing) {
+    coins.forEach(coin => {
+      coin.loadNewTexture();
+      
+    });
+    rangeIndex = 0;
+  } else {
+    rangeIndex += 1;
+  }
 
-  requestAnimationFrame(gameLoop);
+
+
+
+  
+
+  ghostPlayer = player1;
+  player1.CheckForMovement(ghostPlayer);
+
+  
+
+  requestAnimationFrame(gameLoop.bind(this, action, rangeIndex));
 }
 
 document.onmousemove = function (e) {
@@ -463,20 +459,30 @@ document.body.appendChild(canvas);
 const ctx = canvas.getContext("2d");
 
 const platform1 = new Platform(2, 1, "grass", 221, 124);
-const platform2 = new Platform(2, 1, "grass", 1050, 350);
-const platform3 = new Platform(5, 1, "grass", 287, 500);
+const platform2 = new Platform(20, 1, "grass", 0, 500);
+// const platform3 = new Platform(5, 1, "grass", 287, 500);
 
 platform1.CreatePlatform();
 platform2.CreatePlatform();
-platform3.CreatePlatform();
+// platform3.CreatePlatform();
 
-let platforms = [platform1, platform2, platform3];
+let platforms = [platform1, platform2];
 
-const player1 = new Player(650, 250);
+const player1 = new Player(1100, 150);
 
 player1.LoadPlayer("player1");
 player1.InititatePlayerMovement();
 
 const debugConsole = document.querySelector("#DebugText");
 
-gameLoop();
+let coin1 = new Coin(650, 250);
+coin1.LoadCoin();
+let coin2 = new Coin(1000, 250);
+coin2.LoadCoin();
+
+let coins = [coin1, coin2];
+
+let action = 0;
+let rangeIndex = 0;
+
+gameLoop(action, rangeIndex);
