@@ -27,10 +27,10 @@ class Platform {
     // X and Y pos are the top left corner of the platform
 
     this.PointA = this.position;
-    this.PointB = new Point(this.position.x + this.width + 80, this.position.y);
+    this.PointB = new Point(this.position.x + this.width + 40, this.position.y);
     this.PointC = new Point(this.position.x, this.position.y + this.height);
     this.PointD = new Point(
-      this.position.x + this.width + 80,
+      this.position.x + this.width + 40,
       this.position.y + this.height
     );
   }
@@ -51,9 +51,6 @@ class Platform {
     slicePlatformDiv.className = "slicePlatform";
     slicePlatformDiv.style.display = "flex";
     slicePlatformDiv.style.flexDirection = "row";
-    // slicePlatformDiv.style.position = "absolute";
-    // slicePlatformDiv.style.left = `${postion.x}px`;
-    // slicePlatformDiv.style.top = `${postion.y}px`;
     slicePlatformDiv.style.width = `${width}px`;
     slicePlatformDiv.style.height = `${height}px`;
     slicePlatformDiv.style.zIndex = 10;
@@ -163,8 +160,8 @@ class Player {
     this.width = 50;
     this.height = 50;
     this.pace = new Vector(0.08, 3);
-    this.gravity = 0.2;
-    this.jumpPower = -10.0;
+    this.gravity = 0.23;
+    this.jumpPower = -12.0;
     this.maxVelocety = 5;
     this.friction = 0.1;
 
@@ -175,9 +172,12 @@ class Player {
     this.jumping = false;
     this.onGround = false;
     this.canJump = true;
+    this.climbSpeed = -0;
 
     this.textureIndex = 1;
-    this.maxTextureIndex = 18;
+    // this.maxTextureIndex = 18;
+    this.maxTextureIndex = 5;
+    this.textureIndexJump = 1;
 
     this.UpdateHitbox();
   }
@@ -264,7 +264,7 @@ class Player {
   }
 
   CheckForMovement(ghostPlayer) {
-    debugConsole.textContent = this.velocety.dx;
+    // debugConsole.textContent = this.velocety.dx;
     // console.log(this.velocety.dx);
 
     if (this.keys.indexOf("ArrowRight") != -1 || this.keys.indexOf("d") != -1) {
@@ -313,9 +313,9 @@ class Player {
     } else {
       this.velocety.dy += this.gravity;
     }
-    if (ghostCollisions.indexOf("Top") != -1) {
-      this.velocety.dy = this.velocety.dy * -0.7;
-    }
+    // if (ghostCollisions.indexOf("Top") != -1) {
+    //   this.velocety.dy = this.velocety.dy * -0.7;
+    // }
 
     if (
       this.onGround &&
@@ -337,7 +337,7 @@ class Player {
     if (this.textureIndex >= this.maxTextureIndex) {
       player.textureIndex = 1;
     } else {
-      this.textureIndex += 1;
+      this.textureIndex += this.textureIndexJump;
     }
     let imagePath =
       "url('" +
@@ -368,23 +368,30 @@ class Player {
     if (ghostPlayer.onGround) {
       realPlayer.onGround = true;
     }
+    // debugConsole.textContent = ghostCollisions;
 
     if (ghostCollisions.length > 0) {
-      if (
-        ghostCollisions.indexOf("LeftWall") != -1 ||
-        ghostCollisions.indexOf("Left") != -1
-      ) {
+      if (ghostCollisions.indexOf("LeftWall") != -1) {
         if (ghostPlayer.velocety.dx < 0) {
           realPlayer.velocety.dx = 1;
         }
       }
-      if (
-        ghostCollisions.indexOf("RightWall") != -1 ||
-        ghostCollisions.indexOf("Right") != -1
-      ) {
+      if (ghostCollisions.indexOf("Left") != -1) {
+        realPlayer.velocety.dx = 1;
+        // if (!realPlayer.onGround) {
+        //   realPlayer.velocety.dy = realPlayer.climbSpeed;
+        // }
+      }
+      if (ghostCollisions.indexOf("RightWall") != -1) {
         if (ghostPlayer.velocety.dx > 0) {
           realPlayer.velocety.dx = -1;
         }
+      }
+      if (ghostCollisions.indexOf("Right") != -1) {
+        realPlayer.velocety.dx = -1;
+        // if (!realPlayer.onGround) {
+        //   realPlayer.velocety.dy = realPlayer.climbSpeed;
+        // }
       }
     }
 
@@ -396,13 +403,23 @@ class Player {
     }
 
     if (realPlayer.onGround) {
-      // console.log(realPlayer.velocety.dy);
-
       if (realPlayer.velocety.dx > 0) {
-        this.animateRunning(realPlayer, "facingRight");
+        if (rangeIndex >= spacing) {
+          this.animateRunning(realPlayer, "facingRight");
+          rangeIndex = 0;
+        } else {
+          rangeIndex += 1;
+        }
+        // this.animateRunning(realPlayer, "facingRight");
       }
       if (realPlayer.velocety.dx < 0) {
-        this.animateRunning(realPlayer, "facingLeft");
+        if (rangeIndex >= spacing) {
+          this.animateRunning(realPlayer, "facingLeft");
+          rangeIndex = 0;
+        } else {
+          rangeIndex += 1;
+        }
+        // this.animateRunning(realPlayer, "facingLeft");
       }
     }
 
@@ -417,6 +434,7 @@ class Coin {
     this.height = 128;
     this.textureIndex = 1;
     this.maxTextureIndex = 16;
+    this.textureIndexJump = 1;
 
     this.widthAndHeight = 40;
     // this.hitbox
@@ -451,11 +469,14 @@ class Coin {
     if (this.textureIndex >= this.maxTextureIndex) {
       this.textureIndex = 1;
     } else {
-      this.textureIndex += 1;
+      this.textureIndex += this.textureIndexJump;
     }
     let imagePath = "url('img/coin/2x/image " + this.textureIndex + ".png')";
+    // console.log(this.textureIndexJump)
 
     this.coinDiv.style.backgroundImage = imagePath;
+    console.log(this.textureIndex);
+    // console.log(this.coinDiv.style.backgroundImage);
   }
 }
 
@@ -497,8 +518,8 @@ function checkCollision(ghostPlayer, platforms) {
       }
     }
     if (
-      inRange(ghostPlayer.PointD.y, platform.PointA.y, platform.PointC.y) ||
-      inRange(ghostPlayer.PointA.y, platform.PointA.y, platform.PointC.y)
+      inRange(ghostPlayer.PointD.y, platform.PointA.y + 10, platform.PointC.y) ||
+      inRange(ghostPlayer.PointA.y, platform.PointA.y + 10, platform.PointC.y)
     ) {
       if (
         inRange(
@@ -507,7 +528,9 @@ function checkCollision(ghostPlayer, platforms) {
           platform.PointA.x + platformHitboxMargin
         )
       ) {
-        collisions.push("Right");
+        if (ghostPlayer.onGround) {
+          collisions.push("Right");
+        }
       }
       if (
         inRange(
@@ -521,7 +544,9 @@ function checkCollision(ghostPlayer, platforms) {
           platform.PointB.x
         )
       ) {
-        collisions.push("Left");
+        if (ghostPlayer.onGround) {
+          collisions.push("Left");
+        }
       }
     }
   }
@@ -536,10 +561,10 @@ function checkCollision(ghostPlayer, platforms) {
   return collisions;
 }
 
-function drawDot(ctx, x, y, color) {
+function drawDot(ctx, x, y, color, radius) {
   ctx.beginPath();
-  ctx.arc(x, y, 15, 0, 2 * Math.PI, false);
-  ctx.fillStyle = "#ee534f";
+  ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+  ctx.fillStyle = color;
   ctx.fill();
 }
 function findCenterPoint(point1, point2) {
@@ -549,7 +574,6 @@ function findCenterPoint(point1, point2) {
 }
 function gameLoop(action, rangeIndex) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  let spacing = 3;
 
   if (rangeIndex >= spacing) {
     coins.forEach((coin) => {
@@ -565,13 +589,22 @@ function gameLoop(action, rangeIndex) {
 
   playerCenter = findCenterPoint(player1.PointA, player1.PointD);
 
-  drawDot(ctx, playerCenter.x, playerCenter.y, "red");
+  drawDot(
+    ctx,
+    playerCenter.x,
+    playerCenter.y,
+    "#ee534f" /* red */,
+    (radius = 5)
+  );
 
-  console.log(player1.playerDiv.style.backgroundImage);
+  // console.log(player1.playerDiv.style.backgroundImage);
+
+  // platforms.forEach((platform) => {
+  //   drawDot(ctx, platform.PointB.x, platform.PointB.y, "blue", (radius = 5));
+  // });
 
   requestAnimationFrame(gameLoop.bind(this, action, rangeIndex));
 }
-
 
 function platformPlacingModeDev() {
   document.addEventListener("click", (e) => {
@@ -598,34 +631,64 @@ const ctx = canvas.getContext("2d");
 
 //Level 1
 const platform1 = new Platform(4, 3, "grass", 0, 600);
-// const platform2 = new Platform(3, 1, "grass", 550, 450);
-const platform2 = new Platform(3, 1, "grass", platform1.width, 500);
-const platform3 = new Platform(1, 2, "grass", 1000, 450);
+const platform2 = new Platform(3, 2, "grass", platform1.width, 450);
+const platform3 = new Platform(2, 2, "grass", 1000, 480);
+const platform4 = new Platform(5, 3, "grass", 1400, 350);
+const platform44 = new Platform(5, 1, "grass", 1420, 60);
+const platform5 = new Platform(3, 1, "grass", 950, 180);
+const platform6 = new Platform(5, 1, "grass", 288, 100);
+const platform7 = new Platform(3, 2, "grass", 0, platform6.PointA.y + platform6.height);
 
 platform1.CreatePlatform();
 platform2.CreatePlatform();
 platform3.CreatePlatform();
+platform4.CreatePlatform();
+platform44.CreatePlatform();
+platform5.CreatePlatform();
+platform6.CreatePlatform();
+platform7.CreatePlatform();
+
 // platform3.CreatePlatform();
 
-let platforms = [platform1, platform2, platform3];
+let platforms = [platform1, platform2, platform3, platform4, platform5, platform6, platform7, platform44];
 
 const player1 = new Player(20, 200);
 
 player1.LoadPlayer("player1");
 player1.InititatePlayerMovement();
 
-const debugConsole = document.querySelector("#DebugText");
+// const debugConsole = document.querySelector("#DebugText");
 
-let coin1 = new Coin(650, 250);
+let coin1 = new Coin(platform2.PointA.x + 30, platform2.PointA.y - 65);
 coin1.LoadCoin();
-let coin2 = new Coin(1000, 250);
+let coin2 = new Coin(platform44.PointA.x + 40, platform44.PointA.y - 65);
 coin2.LoadCoin();
+let coin3 = new Coin(840, 12);
+coin3.LoadCoin();
 
-let coins = [coin1, coin2];
+let coins = [coin1, coin2, coin3];
 
 let action = 0;
 let rangeIndex = 0;
+let spacing = 3;
+let optimisationMode = false;
 
 // platformPlacingModeDev();
+
+if (optimisationMode) {
+  let part = 0.25;
+  spacing = 10;
+
+  for (let i = 0; i < coins.length; i++) {
+    let coin = coins[i];
+    console.log("heoi   " + coin.textureIndexJump / part);
+    coin.maxTextureIndex = coin.maxTextureIndex * part;
+    coin.textureIndexJump = coin.textureIndexJump / part;
+    console.log("Jump  " + coin.textureIndexJump);
+  }
+
+  player1.maxTextureIndex = player1.maxTextureIndex * part;
+  player1.textureIndexJump = player1.textureIndexJump / part;
+}
 
 gameLoop(action, rangeIndex);
