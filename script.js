@@ -21,6 +21,7 @@ class Platform {
     this.numberOfBlocksY = height;
     this.width = width * this.platformHeightAndWidth;
     this.height = height * this.platformHeightAndWidth;
+    this.pointy = false;
 
     this.type = type;
     this.position = new Point(x, y);
@@ -73,6 +74,9 @@ class Platform {
         platformType = "topLevelMultiHeight";
       } else if (platformYIndex == numberOfBlocksY - 1) {
         platformType = "bottomLevel";
+        if (this.pointy) {
+          platformType = "pointyBottomLevel";
+        }
       } else {
         platformType = "midLevel";
       }
@@ -437,9 +441,21 @@ class Coin {
     this.textureIndexJump = 1;
 
     this.widthAndHeight = 40;
+
+    this.center = findCenterPoint(
+      this.position,
+      new Point(
+        this.position.x + this.widthAndHeight,
+        this.position.y + this.widthAndHeight
+      )
+    );
+
+    this.radius = 20;
+    // this.hitboxCircle =
     // this.hitbox
   }
   LoadCoin() {
+    this.exists = true;
     this.coinDiv = document.createElement("div");
 
     this.coinDiv.style.backgroundImage =
@@ -458,6 +474,7 @@ class Coin {
     document.body.appendChild(this.coinDiv);
   }
   UnloadCoin() {
+    this.exists = false;
     if (this.coinDiv && document.body.contains(this.coinDiv)) {
       document.body.removeChild(this.coinDiv);
     } else {
@@ -475,8 +492,33 @@ class Coin {
     // console.log(this.textureIndexJump)
 
     this.coinDiv.style.backgroundImage = imagePath;
-    console.log(this.textureIndex);
+    // console.log(this.textureIndex);
     // console.log(this.coinDiv.style.backgroundImage);
+  }
+  checkCollision(player) {
+    if (
+      PointInCircleArea(player.PointD, this.center, this.radius) ||
+      PointInCircleArea(player.PointA, this.center, this.radius) ||
+      PointInCircleArea(player.PointB, this.center, this.radius) ||
+      PointInCircleArea(player.PointC, this.center, this.radius)
+    ) {
+      if (this.exists) {
+        this.UnloadCoin();
+        playSound("sound/coin/coinPickup.mp3");
+      }
+    }
+  }
+}
+
+function DistanceBetweenPoints(Point1, Point2) {
+  return Math.sqrt((Point2.x - Point1.x) ** 2 + (Point2.y - Point1.y) ** 2);
+}
+
+function PointInCircleArea(mousePos, center, radius) {
+  if (DistanceBetweenPoints(center, mousePos) < radius) {
+    return true;
+  } else {
+    return false;
   }
 }
 
@@ -518,7 +560,11 @@ function checkCollision(ghostPlayer, platforms) {
       }
     }
     if (
-      inRange(ghostPlayer.PointD.y, platform.PointA.y + 10, platform.PointC.y) ||
+      inRange(
+        ghostPlayer.PointD.y,
+        platform.PointA.y + 10,
+        platform.PointC.y
+      ) ||
       inRange(ghostPlayer.PointA.y, platform.PointA.y + 10, platform.PointC.y)
     ) {
       if (
@@ -594,8 +640,11 @@ function gameLoop(action, rangeIndex) {
     playerCenter.x,
     playerCenter.y,
     "#ee534f" /* red */,
-    (radius = 5)
+    (radius = 20)
   );
+  coins.forEach((coin) => {
+    coin.checkCollision(player1);
+  });
 
   // console.log(player1.playerDiv.style.backgroundImage);
 
@@ -604,6 +653,10 @@ function gameLoop(action, rangeIndex) {
   // });
 
   requestAnimationFrame(gameLoop.bind(this, action, rangeIndex));
+}
+function playSound(src) {
+  const sound = new Audio(src);
+  sound.play();
 }
 
 function platformPlacingModeDev() {
@@ -632,12 +685,20 @@ const ctx = canvas.getContext("2d");
 //Level 1
 const platform1 = new Platform(4, 3, "grass", 0, 600);
 const platform2 = new Platform(3, 2, "grass", platform1.width, 450);
-const platform3 = new Platform(2, 2, "grass", 1000, 480);
+platform2.pointy = true;
+const platform3 = new Platform(2, 1, "grass", 1000, 480);
 const platform4 = new Platform(5, 3, "grass", 1400, 350);
 const platform44 = new Platform(5, 1, "grass", 1420, 60);
 const platform5 = new Platform(3, 1, "grass", 950, 180);
 const platform6 = new Platform(5, 1, "grass", 288, 100);
-const platform7 = new Platform(3, 2, "grass", 0, platform6.PointA.y + platform6.height);
+const platform7 = new Platform(
+  3,
+  4,
+  "grass",
+  0,
+  platform6.PointA.y + platform6.height
+);
+platform7.pointy = true;
 
 platform1.CreatePlatform();
 platform2.CreatePlatform();
@@ -650,7 +711,16 @@ platform7.CreatePlatform();
 
 // platform3.CreatePlatform();
 
-let platforms = [platform1, platform2, platform3, platform4, platform5, platform6, platform7, platform44];
+let platforms = [
+  platform1,
+  platform2,
+  platform3,
+  platform4,
+  platform5,
+  platform6,
+  platform7,
+  platform44,
+];
 
 const player1 = new Player(20, 200);
 
@@ -681,10 +751,10 @@ if (optimisationMode) {
 
   for (let i = 0; i < coins.length; i++) {
     let coin = coins[i];
-    console.log("heoi   " + coin.textureIndexJump / part);
+    // console.log("heoi   " + coin.textureIndexJump / part);
     coin.maxTextureIndex = coin.maxTextureIndex * part;
     coin.textureIndexJump = coin.textureIndexJump / part;
-    console.log("Jump  " + coin.textureIndexJump);
+    // console.log("Jump  " + coin.textureIndexJump);
   }
 
   player1.maxTextureIndex = player1.maxTextureIndex * part;
