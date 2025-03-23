@@ -222,7 +222,6 @@ class Player {
     this.UpdateHitbox();
     this.playerDiv.style.left = `${this.position.x}px`;
     this.playerDiv.style.top = `${this.position.y}px`;
-    // fakeBody.style.zIndex = -10;
   }
 
   LoadPlayer(className) {
@@ -237,9 +236,9 @@ class Player {
     this.playerDiv.style.zIndex = 11;
     this.playerDiv.style.width = `${this.width}px`;
     this.playerDiv.style.height = `${this.height}px`;
-    this.playerDiv.style.backgroundSize = "contain"; // Ensure the image is fully contained
-    this.playerDiv.style.backgroundPosition = "center"; // Center the image within the div
-    this.playerDiv.style.backgroundRepeat = "no-repeat"; // Prevent the image from repeating
+    this.playerDiv.style.backgroundSize = "contain";
+    this.playerDiv.style.backgroundPosition = "center";
+    this.playerDiv.style.backgroundRepeat = "no-repeat";
 
     document.body.appendChild(this.playerDiv);
     this.UpdateHitbox();
@@ -463,9 +462,9 @@ class Coin {
     this.coinDiv.style.zIndex = 12;
     this.coinDiv.style.width = `${this.widthAndHeight}px`;
     this.coinDiv.style.height = `${this.widthAndHeight}px`;
-    this.coinDiv.style.backgroundSize = "contain"; // Ensure the image is fully contained
-    this.coinDiv.style.backgroundPosition = "center"; // Center the image within the div
-    this.coinDiv.style.backgroundRepeat = "no-repeat"; // Prevent the image from repeating
+    this.coinDiv.style.backgroundSize = "contain";
+    this.coinDiv.style.backgroundPosition = "center"; 
+    this.coinDiv.style.backgroundRepeat = "no-repeat"; 
 
     document.body.appendChild(this.coinDiv);
   }
@@ -506,7 +505,6 @@ class Coin {
 class FinishFlag {
   constructor(x, y) {
     this.position = new Point(x, y);
-    // this.widthAndHeight = 150;
     this.width = 100;
     this.height = 150;
     this.radius = 30;
@@ -529,9 +527,9 @@ class FinishFlag {
     this.flagDiv.style.zIndex = 1;
     this.flagDiv.style.width = `${this.width}px`;
     this.flagDiv.style.height = `${this.height}px`;
-    this.flagDiv.style.backgroundSize = "contain"; // Ensure the image is fully contained
-    this.flagDiv.style.backgroundPosition = "center"; // Center the image within the div
-    this.flagDiv.style.backgroundRepeat = "no-repeat"; // Prevent the image from repeating
+    this.flagDiv.style.backgroundSize = "contain"; 
+    this.flagDiv.style.backgroundPosition = "center"; 
+    this.flagDiv.style.backgroundRepeat = "no-repeat";
 
     document.body.appendChild(this.flagDiv);
   }
@@ -684,10 +682,8 @@ function optimisationModeInit() {
 
     for (let i = 0; i < coins.length; i++) {
       let coin = coins[i];
-      // console.log("heoi   " + coin.textureIndexJump / part);
       coin.maxTextureIndex = coin.maxTextureIndex * part;
       coin.textureIndexJump = coin.textureIndexJump / part;
-      // console.log("Jump  " + coin.textureIndexJump);
     }
 
     player1.maxTextureIndex = player1.maxTextureIndex * part;
@@ -749,7 +745,7 @@ function gameLoop(action, rangeIndex) {
     ctx,
     playerCenter.x,
     playerCenter.y,
-    "#ee534f" /* red */,
+    "#ee534f"
     (radius = 20)
   );
   coins.forEach((coin) => {
