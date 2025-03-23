@@ -463,8 +463,8 @@ class Coin {
     this.coinDiv.style.width = `${this.widthAndHeight}px`;
     this.coinDiv.style.height = `${this.widthAndHeight}px`;
     this.coinDiv.style.backgroundSize = "contain";
-    this.coinDiv.style.backgroundPosition = "center"; 
-    this.coinDiv.style.backgroundRepeat = "no-repeat"; 
+    this.coinDiv.style.backgroundPosition = "center";
+    this.coinDiv.style.backgroundRepeat = "no-repeat";
 
     document.body.appendChild(this.coinDiv);
   }
@@ -527,8 +527,8 @@ class FinishFlag {
     this.flagDiv.style.zIndex = 1;
     this.flagDiv.style.width = `${this.width}px`;
     this.flagDiv.style.height = `${this.height}px`;
-    this.flagDiv.style.backgroundSize = "contain"; 
-    this.flagDiv.style.backgroundPosition = "center"; 
+    this.flagDiv.style.backgroundSize = "contain";
+    this.flagDiv.style.backgroundPosition = "center";
     this.flagDiv.style.backgroundRepeat = "no-repeat";
 
     document.body.appendChild(this.flagDiv);
@@ -541,10 +541,13 @@ class FinishFlag {
       PointInCircleArea(player.PointB, this.center, this.radius) ||
       PointInCircleArea(player.PointC, this.center, this.radius)
     ) {
-      player.finnished = true;
       finnishedGui.style.display = "block";
       coinResultDisplay.textContent =
         "You got " + acuiredCoins + " / " + coins.length + " coins!";
+      if (!player.finnished) {
+        playSound("sound/fanfare.mp3");
+      }
+      player.finnished = true;
     }
   }
 }
@@ -641,6 +644,9 @@ function checkCollision(ghostPlayer, platforms) {
     gameOverGui.style.display = "block";
     gameOverGui.style.zIndex = 100;
     stopGameLoop = true;
+    playSound("sound/fail.mp3");
+  } else {
+    gameOverGui.style.display = "none";
   }
 
   return collisions;
@@ -707,7 +713,7 @@ function setupMenuButtons() {
     instructionsDiv.style.display = "block";
   });
   restartButton2.addEventListener("click", () => {
-    window.close()
+    window.close();
   });
   goBackButton.addEventListener("click", () => {
     instructionsDiv.style.display = "none";
@@ -723,9 +729,7 @@ function setupMenuButtons() {
 }
 
 function gameLoop(action, rangeIndex) {
-  console.log("LOPPP");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  gameOverGui.style.zIndex = -10;
 
   if (rangeIndex >= spacing) {
     coins.forEach((coin) => {
@@ -741,13 +745,7 @@ function gameLoop(action, rangeIndex) {
 
   playerCenter = findCenterPoint(player1.PointA, player1.PointD);
 
-  drawDot(
-    ctx,
-    playerCenter.x,
-    playerCenter.y,
-    "#ee534f"
-    (radius = 20)
-  );
+  drawDot(ctx, playerCenter.x, playerCenter.y, "#ee534f", (radius = 20));
   coins.forEach((coin) => {
     coin.checkCollision(player1);
   });
@@ -832,7 +830,7 @@ const restartButton = document.querySelector("#reloadButton");
 
 const finnishedGui = document.querySelector("#wonDiv");
 const coinResultDisplay = document.querySelector("#coinResultDisplay");
-const reloadWindowButton = document.querySelector("#reloadPageButton")
+const reloadWindowButton = document.querySelector("#reloadPageButton");
 
 const optimisedSwitch = document.querySelector("#toggleswitch");
 
