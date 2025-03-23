@@ -1,18 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLÅD</title>
-    <link rel="stylesheet" href="style.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>"BLOD"   PLatforming   Game</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="font.css" />
+    <link rel="stylesheet" href="slider.css" />
 
-</head>
-<body>
-    <div id="gameGui">         
+    <link rel="icon" href="img/favIcon/favicon.ico" type="image/x-icon" />
+  </head>
+  <body>
+    <div id="gameGui"></div>
+
+    <div id="mainMenu">
+      <div id="mainMenuBackground"></div>
+      <div id="mainMenuOptionsDiv">
+        <h1 class="header">"BLOD" &nbsp PLatforming &nbsp Game</h1>
+        <p class="smallText" id="startGameButton">Start Game</p>
+        <p class="smallText" id="instructionsButton">Instructions</p>
+        <p class="smallText" id="restartButton">Exit</p>
+
+        <div id="optmisationModeDiv">
+          <p>Optimisation Mode</p>
+          <label class="switch">
+            <input id="toggleswitch" type="checkbox" />
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
+
+      <div id="instructionsDiv">
+        <div id="instructions"></div>
+        <div id="backButton">Go back</div>
+      </div>
     </div>
-    <!-- <div id="DebugConsole">
-        <p id="DebugText">Debug</p>
-    </div> -->
+
+    <div id="wonDiv">
+      <h1>You &nbsp completed &nbsp the &nbsp course!</h1>
+      <p id="coinResultDisplay">You got 10/10 coins</p>
+      <p id="reloadPageButton">Restart</p>
+    </div>
+
+    <div id="gameOverDiv">
+      <div id="gameOverBackground"></div>
+      <p id="gameOverText">GAME OVER</p>
+      <div id="reloadButton"><p>Respawn</p></div>
+    </div>
+
     <script src="script.js"></script>
-</body>
+  </body>
 </html>

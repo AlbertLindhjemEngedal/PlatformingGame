@@ -1,3 +1,8 @@
+@font-face {
+  font-family: "game";
+  src: url("font/ARCADECLASSIC.TTF") format("truetype");
+}
+
 body {
   margin: 0px;
   padding: 0px;
@@ -8,20 +13,13 @@ body {
 
 #gameGui {
   position: absolute;
-  /* top: 20px; */
   width: 100%;
   height: 100%;
-
   background-image: url(img/background/nature.jpg);
   background-size: contain;
+  z-index: 50;
 }
 
-/* .player {
-  border: solid 1px black;
-} */
-/* body * {
-  border: solid 1px black;
-} */
 canvas {
   position: absolute;
   top: 0;
@@ -29,6 +27,7 @@ canvas {
   pointer-events: none;
   z-index: 9;
 }
+
 #DebugConsole {
   background-color: black;
   color: white;
@@ -42,4 +41,225 @@ canvas {
   left: 0;
   top: 0;
   z-index: 100;
+}
+#fakeLayerBody {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  z-index: 100;
+
+  margin: 0px;
+  padding: 0px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#gameOverBackground {
+  background-color: black;
+
+  width: 700px;
+  height: 300px;
+  border-radius: 15px;
+  margin: auto;
+  position: absolute;
+  top: 20%;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.5;
+
+  z-index: 99;
+}
+
+#gameOverDiv {
+  color: white;
+  width: 700px;
+  height: 300px;
+  text-align: center;
+
+  border-radius: 15px;
+  margin: auto;
+  position: absolute;
+  top: 15%;
+  justify-content: center;
+  align-items: center;
+
+  z-index: -10;
+}
+
+#gameOverText {
+  position: absolute;
+  top: 5%;
+  right: 20%;
+  font-family: "game";
+  font-size: 100px;
+  color: red;
+}
+
+#reloadButton {
+  position: absolute;
+  bottom: 1%;
+  left: 40%;
+  font-family: "game";
+  font-size: 30px;
+  color: white;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+#reloadButton:hover {
+  color: yellow;
+  cursor: pointer;
+}
+#gameOverDiv * {
+  z-index: 101;
+}
+#mainMenu {
+  color: white;
+
+  position: absolute;
+  top: 25%;
+  width: 100%;
+  height: 350px;
+  text-align: center;
+
+  z-index: 100;
+  font-family: "game", sans-serif;
+  font-size: 20px;
+}
+
+#mainMenuBackground {
+  background-color: black;
+
+  position: relative;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+
+  z-index: 0;
+  opacity: 0.7;
+}
+#mainMenuOptionsDiv {
+  z-index: 10;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+#mainMenuTextDiv * {
+  font-family: "game", sans-serif;
+
+  color: white;
+}
+.header {
+  font-size: 50px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.smallText {
+  font-size: 30px;
+  cursor: pointer;
+  width: 200px;
+  margin: 10px;
+}
+
+#startGameButton {
+  cursor: pointer;
+}
+#startGameButton:hover {
+  color: yellow;
+}
+#instructionsButton:hover {
+  color: yellow;
+}
+#restartButton:hover {
+  color: red;
+}
+
+#instructionsDiv {
+  color: white;
+
+  position: absolute;
+  top: 1%;
+  width: 800px;
+  height: 400px;
+  text-align: center;
+  margin-left: 350px;
+
+  z-index: 100;
+  font-family: "game", sans-serif;
+
+  display: none;
+}
+
+#instructions {
+  background-image: url(img/instructions/InstructionsBGWhite.png);
+  background-size: cover;
+  width: 800px;
+  height: 200px;
+
+  margin: auto;
+}
+
+#backButton {
+  position: relative;
+  top: 15%;
+  font-size: 30px;
+  font-family: "game";
+  cursor: pointer;
+}
+#backButton:hover {
+  color: yellow;
+}
+
+#wonDiv {
+  background-color: green;
+  background-image: url(img/background/checkered.png);
+  background-size: 40%;
+
+  color: yellow;
+
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 150;
+
+  text-align: center;
+
+  font-family: "game";
+}
+#wonDiv h1 {
+
+  font-size: 100px;
+  background-color: gray;
+  margin-top: 130px;
+}
+#wonDiv p {
+  background-color: gray;
+  font-size: 50px;
+  margin-top: 60px;
+}
+
+#reloadPageButton {
+  color: white;
+  cursor: pointer;
+}
+
+#reloadPageButton:hover {
+  color: greenyellow;
 }
